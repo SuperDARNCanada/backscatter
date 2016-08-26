@@ -6,13 +6,8 @@
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
-
-try:
-    from setuptools import setup
-    from setuptools.command.install import install
-except ImportError:
-    from distutils.core import setup
-    from distutils.command.install import install
+from setuptools import setup, find_packages
+from setuptools.command.install import install
 
 import errno
 class CustomInstall(install):
@@ -40,10 +35,9 @@ class CustomInstall(install):
         config.set('fitacf', 'minimum_lags', '3')
         
         config.add_section('core')
-        config.set('core', 'hdw_files_path', '/etc/backscatter')
+        config.set('core', 'hdw_files_path', '/usr/local/hdw.dat')
         
-        for loc in os.curdir, "/etc/backscatter":
-        
+        for loc in os.curdir, os.path.expanduser("~"), "/etc/backscatter":
             file_path = os.path.join(loc,"backscatter.ini")
         
             if not os.path.exists(os.path.dirname(file_path)):
@@ -51,13 +45,21 @@ class CustomInstall(install):
                     os.makedirs(loc)
                 except OSError as exc: # Guard against race condition
                     if exc.errno != errno.EEXIST:
-                        raise
+                        if exc.errno == errno.EACCES:
+                            err_msg = """Could not create installation folder
+                            at {0}. Please manually create or reinstall as 
+                            root.""".format(loc)
+                            print(err_msg)
+                        else:
+                            raise
             
+            try:
                 with open(file_path,'wb') as cfg:
                     config.write(cfg)
-
-
-
+            except:
+                err_msg = """Could not install configuration file
+                at {0}. Please manually copy or reinstall as root.""".format(loc)
+                print(err_msg)
 
 
 
@@ -69,7 +71,8 @@ setup_args  =  {
     'url' : "",
     'author' : "SuperDARN Canada",
     'license' : "GNU",
-    'packages' : ["backscatter","tests"],
+    'packages' : find_packages(exclude=['contrib', 'docs', 'tests']),
+    'install_requires' : ['ConfigParser'],
     'cmdclass' : {'install' : CustomInstall,},
 }
 
