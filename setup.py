@@ -14,7 +14,7 @@ except ImportError:
     from distutils.core import setup
     from distutils.command.install import install
 
-
+import errno
 class CustomInstall(install):
     """Customized setuptools install command - creates configuration files."""
     def run(self):
