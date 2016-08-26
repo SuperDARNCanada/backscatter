@@ -72,7 +72,8 @@ setup_args  =  {
     'author' : "SuperDARN Canada",
     'license' : "GNU",
     'packages' : find_packages(exclude=['contrib', 'docs', 'tests']),
-    'install_requires' : ['ConfigParser'],
+    'setup_requires' : ['ConfigParser'],
+    'install_requires' : ['numpy>=1.8'],
     'cmdclass' : {'install' : CustomInstall,},
 }
 
