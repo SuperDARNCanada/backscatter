@@ -1013,7 +1013,7 @@ class RawDmapWrite(object):
         for dim in array.get_arr_dimensions():
             arr_dimensions_bytes = arr_dimensions_bytes + struct.pack('i',dim)
 
-        data_bytes = array.get_data().tobytes()
+        data_bytes = array.get_data().tostring()
 
         total_bytes = name_bytes + dmap_type_bytes + dimension_bytes + arr_dimensions_bytes + data_bytes
         return total_bytes
