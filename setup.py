@@ -46,7 +46,7 @@ class CustomInstall(install):
         
             file_path = os.path.join(loc,"backscatter.ini")
         
-            if not os.path.exists(os.path.dirname(file_name)):
+            if not os.path.exists(os.path.dirname(file_path)):
                 try:
                     os.makedirs(loc)
                 except OSError as exc: # Guard against race condition
