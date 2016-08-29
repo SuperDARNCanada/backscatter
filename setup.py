@@ -37,7 +37,7 @@ class CustomInstall(install):
         config.add_section('core')
         config.set('core', 'hdw_files_path', '/usr/local/hdw.dat')
         
-        for loc in os.curdir, os.path.expanduser("~"), "/etc/backscatter":
+        for loc in os.path.expanduser("~"), "/etc/backscatter":
             file_path = os.path.join(loc,"backscatter.ini")
         
             if not os.path.exists(os.path.dirname(file_path)):
