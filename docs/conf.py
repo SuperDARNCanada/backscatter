@@ -21,7 +21,7 @@
 # sys.path.insert(0, os.path.abspath('.'))
 #mock modules for c extensions
 import sys
-from unittest.mock import MagicMock
+from mock import Mock as MagicMock
 
 class Mock(MagicMock):
     @classmethod
