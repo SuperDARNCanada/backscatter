@@ -190,9 +190,15 @@ class PhaseDataPoints(object):
 
         """        
 
-        acfd = raw_data[phase_type][range_obj.range_number]
         mplgs = raw_data['mplgs']
         mpinc = raw_data['mpinc']
+
+        if phase_type not in raw_data:
+            nrang = raw_data['nrang']
+            acfd = np.zeros((mplgs,2))
+        else:
+            print(range_obj.range_number)
+            acfd = raw_data[phase_type][range_obj.range_number]
 
         real = acfd[:,0]
         imag = acfd[:,1]

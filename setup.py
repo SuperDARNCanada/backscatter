@@ -73,7 +73,7 @@ setup_args  =  {
     'license' : "GNU",
     'packages' : find_packages(exclude=['contrib', 'docs', 'tests']),
     'setup_requires' : ['ConfigParser'],
-    #'install_requires' : ['numpy>=1.8'],
+    'install_requires' : ['numpy>=1.8'],
     'cmdclass' : {'install' : CustomInstall,},
 }
 
