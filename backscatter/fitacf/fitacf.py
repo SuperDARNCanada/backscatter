@@ -103,7 +103,7 @@ class PowerDataPoints(object):
 
         pwrs = np.sqrt(np.add(real_2,imag_2))
 
-        pwr_normalized = np.divide(pwrs,pwr0)
+        pwr_normalized = pwrs/pwr0
         pwr_normalized_2 = pwr_normalized**2
         inverse_alpha_2 = np.reciprocal(range_obj.alpha_2)
 
@@ -197,7 +197,6 @@ class PhaseDataPoints(object):
             nrang = raw_data['nrang']
             acfd = np.zeros((mplgs,2))
         else:
-            print(range_obj.range_number)
             acfd = raw_data[phase_type][range_obj.range_number]
 
         real = acfd[:,0]
