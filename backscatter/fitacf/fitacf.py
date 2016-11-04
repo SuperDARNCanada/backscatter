@@ -431,10 +431,10 @@ if __name__ == "__main__":
     in_filename = sys.argv[1]
     raw_records = dm.parse_dmap_format_from_file(in_filename)
 
-    #fitted_records = fit(raw_records)
+    fitted_records = fit(raw_records)
 
-    for rr in raw_records:
-        _fit(rr)
+    # for rr in raw_records:
+    #     _fit(rr)
 
     out_filename = sys.argv[2]
     dm.dicts_to_file(fitted_records,out_filename,file_type='fitacf')
