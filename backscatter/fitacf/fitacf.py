@@ -21,14 +21,14 @@ def eprint(*args, **kwargs):
 
 def create_lag_list(raw_data):
     """Creates a list of lag dictionaries from raw data
-    
+
     This method uses the mplgs, ptab, mppul, ltab, mpinc,
     and smsep fields of the raw data to create a dictionary
     for each lag. Each lag dictionary contains a field for
     it's number, the pulses used to make the lag, the indices
     at which those pulses are located in ptab, and the sample
     bases.
-    
+
     Lag fields {'number','pulses','pulse2_idx','pulse1_idx','sample_base1','sample_base2'}
     :param raw_data: a dictionary of raw data parameters
     :returns: list of lag dictionaries
@@ -52,7 +52,7 @@ def create_lag_list(raw_data):
                 lag['pulse2_idx'] = idx
 
             if lag_table[i][0] == pulse:
-                lag['pulse1_idx'] = idx 
+                lag['pulse1_idx'] = idx
 
         lag['sample_base1'] = lag_table[i][0] * (mpinc/smsep)
         lag['sample_base2'] = lag_table[i][1] * (mpinc/smsep)
@@ -65,7 +65,7 @@ class PowerDataPoints(object):
     """Contains the power data points for a particular range
 
     This class contains creates an array of log powers, sigmas,
-    and t values for a range created from the raw data. 
+    and t values for a range created from the raw data.
 
     """
 
@@ -81,8 +81,8 @@ class PowerDataPoints(object):
         """Creates the data arrays associated with a range
 
         From the raw data, the magnitude of the power is found.
-        It is then normalized for the calculation of sigma. 
-        After sigma is found, t is determined by multiplying 
+        It is then normalized for the calculation of sigma.
+        After sigma is found, t is determined by multiplying
         lag numbers by the fundamental spacing.
 
         :param raw_data: a dictionary of raw data parameters
@@ -114,8 +114,8 @@ class PowerDataPoints(object):
         t_values = [lag['number'] * mpinc * 1.0e-6 for (pwr, lag) in zip(pwrs,lags)]
 
         self.t = np.array(t_values)
-        
-        #there will for sure be log of 0 here, but we filter it and 
+
+        #there will for sure be log of 0 here, but we filter it and
         #dont need to be warned
         warnings.simplefilter("ignore")
         self.log_pwrs = np.log(pwrs)
@@ -157,15 +157,15 @@ class PowerDataPoints(object):
 
 
 class PhaseDataPoints(object):
-    """Contains phase data points for a particular range. 
+    """Contains phase data points for a particular range.
 
-    Phase data points can apply to both ACF or XCF phase. This 
-    class is used for both velocity and elevation points. This 
+    Phase data points can apply to both ACF or XCF phase. This
+    class is used for both velocity and elevation points. This
     class creates an array of phases, placeholder sigmas(alpha_2),
-    and t values for a range created from the raw data. 
+    and t values for a range created from the raw data.
 
     """
-    
+
     def __init__(self,raw_data,phase_type,lags,range_obj):
         self.phases = None
         self.sigmas = None
@@ -179,8 +179,8 @@ class PhaseDataPoints(object):
 
         From the raw data, phase is determined for ACF or XCF data.
         Sigmas are determined after power fitting, so alpha_2 is
-        used a placeholder at this point. After sigma is found, t 
-        is determined by multiplying lag numbers by the fundamental 
+        used a placeholder at this point. After sigma is found, t
+        is determined by multiplying lag numbers by the fundamental
         spacing.
 
         :param raw_data: a dictionary of raw data parameters
@@ -188,16 +188,16 @@ class PhaseDataPoints(object):
         :param lags: list of lag dictionaries
         :param range_obj: The range object this data is to associated with
 
-        """        
+        """
 
         mplgs = raw_data['mplgs']
         mpinc = raw_data['mpinc']
 
         if phase_type not in raw_data:
-            nrang = raw_data['nrang']
             acfd = np.zeros((mplgs,2))
         else:
             acfd = raw_data[phase_type][range_obj.range_number]
+
 
         real = acfd[:,0]
         imag = acfd[:,1]
@@ -216,7 +216,7 @@ class PhaseDataPoints(object):
         """
         if not bad_indices:
             return
-          
+
         num_points = len(self.phases)
 
         #Removes any indices that are larger than length of data array
@@ -279,7 +279,7 @@ class Range(object):
 
     def find_cri(self,raw_data):
         """Creates an array of cross range interference for each pulse
-        
+
         :param raw_data: a dictionary of raw data parameters
 
         """
@@ -345,7 +345,7 @@ class Range(object):
         """
         if not bad_indices:
             return
-          
+
         num_points = len(self.alpha_2)
 
         #Removes any indices that are larger than length of data array
@@ -359,7 +359,7 @@ class Range(object):
         self.alpha_2 = self.alpha_2[mask]
 
 
-                                                
+
 def _fit(raw_data):
     """Fits a single dictionary of raw data.
 
@@ -372,7 +372,14 @@ def _fit(raw_data):
     """
 
     lags = create_lag_list(raw_data)
-    noise_pwr = NoisePower.acf_cutoff_pwr(raw_data)
+
+    # We check number of averages < 0 since this will cause invalid
+    # division in the noise calculation
+    if raw_data['nave'] <= 0:
+        noise_pwr = 1.0
+    else:
+        raw_data['nave']
+        noise_pwr = NoisePower.acf_cutoff_pwr(raw_data)
 
     range_list = []
     for i in range(0,raw_data['nrang']):
@@ -423,11 +430,11 @@ def fit(raw_records):
 if __name__ == "__main__":
     in_filename = sys.argv[1]
     raw_records = dm.parse_dmap_format_from_file(in_filename)
-    
-    fitted_records = fit(raw_records)
 
-    # for rr in raw_records:
-    #     _fit(rr)
+    #fitted_records = fit(raw_records)
+
+    for rr in raw_records:
+        _fit(rr)
 
     out_filename = sys.argv[2]
     dm.dicts_to_file(fitted_records,out_filename,file_type='fitacf')

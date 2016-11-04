@@ -90,7 +90,7 @@ class Filtering(object):
             log_pwrs = range_obj.pwrs.log_pwrs
 
             inf_indices = [idx for idx,log_pwr in enumerate(log_pwrs) if not np.isfinite(log_pwr)]
- 
+
             range_obj.pwrs.remove_bad_points(inf_indices)
             range_obj.remove_bad_alphas(inf_indices)
 
@@ -100,7 +100,7 @@ class Filtering(object):
         """Removes low power lags from fitting
 
         Prunes off low power lags determined by cutoff criteria. Once a
-        cutoff lag is determined, all subsequent lags in the list are 
+        cutoff lag is determined, all subsequent lags in the list are
         removed
 
         :param raw_data: a dictionary of raw data parameters
@@ -110,6 +110,10 @@ class Filtering(object):
         pwr0 = raw_data['pwr0']
         mplgs = raw_data['mplgs']
         nave = raw_data['nave']
+
+        #Division by zero error
+        if nave <= 0:
+            return
 
         for range_obj in range_list:
             range_number = range_obj.range_number
@@ -152,10 +156,14 @@ class Filtering(object):
         :param raw_data: a dictionary of raw data parameters
         :param range_list: A list of Range objects with data points
         :param noise_pwr: minimum power for which an ACF is pure noise
-        
+
         """
         nave = raw_data['nave']
         pwr0 = raw_data['pwr0']
+
+        #Division by zero error
+        if nave <= 0:
+            return
 
         cutoff_pwr = ACF_SNR_CUTOFF * noise_pwr * (1 + 1/math.sqrt(nave))
 

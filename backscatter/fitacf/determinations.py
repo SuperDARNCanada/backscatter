@@ -1,7 +1,7 @@
 from datetime import datetime
 import numpy as np
 import math
-import sys 
+import sys
 
 from backscatter import config
 from backscatter import hdw_info as hdw
@@ -25,7 +25,7 @@ class Determinations(object):
     def __init__(self,raw_data,range_list,noise_pwr):
         hdw_info = hdw[raw_data['stid']]
         self.paramater_dict = self.new_parameter_dictionary(hdw_info,raw_data,range_list,noise_pwr)
-    
+
     def new_parameter_dictionary(self,hdw_info,raw_data,range_list,noise_pwr):
         """Creates the new dictionary of parameters from fitted data
 
@@ -125,7 +125,10 @@ class Determinations(object):
         new_parameter_dict['phi0'] = self.set_xcf_phi0(range_list)
         new_parameter_dict['phi0_e'] = self.set_xcf_phi0_err(range_list)
 
-        elv = self.find_elevation(range_list,raw_data,hdw_info)
+        if 'xcfd' not in raw_data:
+            elv = ([0] * number_of_ranges,[0] * number_of_ranges,[0] * number_of_ranges)
+        else:
+            elv = self.find_elevation(range_list,raw_data,hdw_info)
         new_parameter_dict['elv_low'] = elv[0]
         new_parameter_dict['elv'] = elv[1]
         new_parameter_dict['elv_high'] = elv[2]
@@ -284,7 +287,7 @@ class Determinations(object):
         :param hdw_info: a dictionary of the radar hardware information
         :returns: an array of computed velocites
 
-        """        
+        """
         vel_conversion = C/((4*math.pi)*(raw_data['tfreq'] * 1000.0)) * hdw_info['velsign']
 
         vel_err = [math.sqrt(range_obj.phase_fit.sigma_2_b) * vel_conversion for range_obj in range_list]
@@ -307,7 +310,7 @@ class Determinations(object):
         w_l = [w_l_calculation(range_obj.linear_pwr_fit.b) for range_obj in range_list]
 
         return np.array(w_l)
-        
+
 
     def set_w_l_err(self,range_list,raw_data):
         """Computes the spectral width error from the linear power fit errors
@@ -333,7 +336,7 @@ class Determinations(object):
         :param raw_data: a dictionary of raw data parameters
         :returns: an array of computed spectral widths
 
-        """        
+        """
 
         w_s_conversion = C/(4*math.pi)/(raw_data['tfreq'] * 1000.0) *4.* math.sqrt(math.log(2))
 
@@ -355,7 +358,7 @@ class Determinations(object):
         w_s_conversion = C/(4*math.pi)/(raw_data['tfreq'] * 1000.0) *4.* math.sqrt(math.log(2))
 
         w_s_calculation = lambda x,y: math.sqrt(math.fabs(x))/2./math.sqrt(math.fabs(y)) * w_s_conversion
-        w_s_err = [w_s_calculation(range_obj.quadratic_pwr_fit_err.sigma_2_b,range_obj.quadratic_pwr_fit.b) for range_obj in range_list]        
+        w_s_err = [w_s_calculation(range_obj.quadratic_pwr_fit_err.sigma_2_b,range_obj.quadratic_pwr_fit.b) for range_obj in range_list]
 
         return np.array(w_s_err)
 
@@ -463,22 +466,22 @@ class Determinations(object):
         psi = [psi_u - cable_offset for psi_u in psi_uncorrected]
 
         psi_kd = [p/(wave_num * antenna_sep) for p in psi]
-        theta = [c_phi_0**2 - pkd**2 for pkd in psi_kd] 
+        theta = [c_phi_0**2 - pkd**2 for pkd in psi_kd]
 
         # if( (theta < 0.0) or (math.fabs(theta) > 1.0)):
         #   elevation = -elev_corr
         # else:
         #   elevation = math.asin(math.sqrt(theta))
 
-        elev_calculation = lambda x: -elev_corr if (t < 0.0 or math.fabs(x) > 1.0) else math.asin(math.sqrt(x)) 
+        elev_calculation = lambda x: -elev_corr if (t < 0.0 or math.fabs(x) > 1.0) else math.asin(math.sqrt(x))
         elevation = [elev_calculation(t) for t in theta]
-        
+
         elevation_normal = [180/math.pi * (elev + elev_corr) for elev in elevation]
 
         #Elevation errors
         psi_k2d2 = [p/(wave_num**2 * antenna_sep**2) for p in psi]
         df_by_dy = [pkd/math.sqrt(t * (1 - t)) for pkd,t in zip(psi_k2d2,theta)]
-        
+
         elev_low_calculation = lambda x,y: 180/math.pi * math.sqrt(x) * math.fabs(y)
         elevation_low = [elev_low_calculation(range_obj.elev_fit.sigma_2_a,dfdy) for range_obj,dfdy in zip(range_list,df_by_dy)]
 
@@ -497,7 +500,7 @@ class Determinations(object):
 
         psi_uu_calculation = lambda x: x + (2 * math.pi) if phi_sign < 0 else x
         psi_uncorrected_unfitted = [psi_uu_calculation(p_uu) for p_uu in psi_uncorrected_unfitted]
-        
+
         psi = [p_uu - cable_offset for p_uu in psi_uncorrected_unfitted]
 
         psi_kd = [p/(wave_num * antenna_sep) for p in psi]
@@ -510,7 +513,7 @@ class Determinations(object):
         #   elevation = np.asin(np.sqrt(theta))
         # }
 
-        elev_calculation = lambda x: -elev_corr if (t < 0.0 or math.fabs(x) > 1.0) else math.asin(math.sqrt(x)) 
+        elev_calculation = lambda x: -elev_corr if (t < 0.0 or math.fabs(x) > 1.0) else math.asin(math.sqrt(x))
         elevation = [elev_calculation(t) for t in theta]
 
         elevation_high = [180/math.pi * (elev + elev_corr) for elev in elevation]
@@ -550,4 +553,4 @@ class Determinations(object):
         """
         sdev_phi = [range_obj.elev_fit.chi_2 for range_obj in range_list]
 
-        return np.array(sdev_phi) 
+        return np.array(sdev_phi)
