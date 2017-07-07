@@ -26,17 +26,29 @@ class Filtering(object):
         txpl = raw_data['txpl']
         smsep = raw_data['smsep']
         lagfr = raw_data['lagfr']
+        offset = raw_data['offset']
+        channel = raw_data['channel']
 
+        pulses_in_us = [mpinc * pulse for pulse in pulses]
+
+        pulses_stereo = []
+        if offset != 0 and (channel == 1 or channel == 2):
+            for pulse in pulses:
+                if channel == 1:
+                    pulse_us = pulse * mpinc - offset
+                else:
+                    pulse_us = pulse * mpinc + offset
+
+                pulses_stereo.append(pulse_us)
+
+        pulses_in_us = pulses_in_us + pulses_stereo
         i = -1
         ts, t1, t2, sample = lagfr, 0, 0, 0
         bad_samples = []
-        while i < (mppul -1):
-            # first, skip over any pulses that occur before the first sample
-            # defines transmitter pulse blanket window
-            while ((ts > t2) and (i < (mppul - 1))):
-                i = i + 1
-                t1 = pulses[i] * mpinc - txpl/2
-                t2 = t1 + 3 * txpl/2 + 100
+        for pulse_us in pulses_in_us:
+
+            t1 = pulse_us - txpl/2
+            t2 = t1 + 3 * txpl/2 + 100
 
             # we now have a pulse that occurs after the current sample.  Start
             # incrementing the sample number until we find a sample that lies
@@ -117,6 +129,9 @@ class Filtering(object):
 
         for range_obj in range_list:
             range_number = range_obj.range_number
+            if len(range_obj.pwrs.log_pwrs) == 0:
+                continue
+
             log_sigma_fluc = math.log(FLUCTUATION_CUTOFF_COEFF * pwr0[range_number]/math.sqrt(2 * nave))
 
             bad_indices = []
@@ -142,7 +157,7 @@ class Filtering(object):
                     if((1/math.sqrt(alpha_2) <= ALPHA_CUTOFF) and (log_pwr <= log_sigma_fluc)):
                         cutoff_lag = idx
                         bad_indices.append(idx)
-
+            noise_mean = raw_data['noise.mean']
             range_obj.pwrs.remove_bad_points(bad_indices)
 
 
@@ -165,13 +180,16 @@ class Filtering(object):
         if nave <= 0:
             return
 
-        cutoff_pwr = ACF_SNR_CUTOFF * noise_pwr * (1 + 1/math.sqrt(nave))
+        cutoff_pwr = noise_pwr * 2
 
         bad_indices = []
         for idx,rang in enumerate(ranges):
             range_number = rang.range_number
-            if (pwr0[range_number] <= cutoff_pwr) or (len(rang.pwrs.log_pwrs) < MIN_LAGS):
+            pw = float(pwr0[range_number])
+            ln = len(rang.pwrs.log_pwrs)
+            if (pw <= cutoff_pwr) or (ln < MIN_LAGS):
                 bad_indices.append(idx)
+
 
         for i in sorted(bad_indices,reverse=True):
             del ranges[i]

@@ -16,10 +16,10 @@ class ACFFitting(object):
     def acf_pwr_fitting(range_list):
         """Initiates least square fitting for power
 
-        Performs a least squares fit for two parameter linear and              
+        Performs a least squares fit for two parameter linear and
         quadratic models to ACF power for each range. Performs additional
-        linear and quadratic fits using log-corrected sigmas for correct 
-        errors. 
+        linear and quadratic fits using log-corrected sigmas for correct
+        errors.
 
         :param range_list: list of Range objects with data to fit
 
@@ -34,11 +34,11 @@ class ACFFitting(object):
             t = range_obj.pwrs.t
 
             if len(log_pwrs) != len(sigmas) != len(t):
-                error_msg = """The length of the data point arrays dont agree in 
+                error_msg = """The length of the data point arrays dont agree in
                 power fitting! {0} log_pwr points, {1} sigma points, {2} t points.
                 """.format(len(log_pwrs),len(sigmas),len(t))
                 raise ValueError(error_msg)
-                
+
             else:
                 num_points = len(log_pwrs)
 
@@ -54,7 +54,7 @@ class ACFFitting(object):
     def acf_phase_fitting(range_list):
         """Initiates least square fitting for ACF phase
 
-        Performs a least squares fit for the one parameter linear model to 
+        Performs a least squares fit for the one parameter linear model to
         ACF phase for each range.
 
         :param range_list: list of Range objects with data to fit
@@ -69,7 +69,7 @@ class ACFFitting(object):
             t_values = range_obj.phases.t
 
             if len(phase_values) != len(sigma_values) != len(t_values):
-                error_msg = """The length of the data point arrays dont agree in 
+                error_msg = """The length of the data point arrays dont agree in
                 phase fitting! {0} phase points, {1} sigma points, {2} t points.
                 """.format(len(phase_values),len(sigmas),len(t))
                 raise ValueError(error_msg)
@@ -82,7 +82,7 @@ class ACFFitting(object):
     def xcf_phase_fitting(range_list):
         """Initiates least square fitting for XCF phase
 
-        Performs a least squares fit for the two parameter linear model to 
+        Performs a least squares fit for the two parameter linear model to
         XCF phase for each range.
 
         :param range_list: list of Range objects with data to fit
@@ -97,13 +97,13 @@ class ACFFitting(object):
             t_values = range_obj.elevs.t
 
             if len(elev_values) != len(sigma_values) != len(t_values):
-                error_msg = """The length of the data point arrays dont agree in 
+                error_msg = """The length of the data point arrays dont agree in
                 elevation fitting! {0} phase points, {1} sigma points, {2} t points.
                 """.format(len(elev_values),len(sigmas),len(t))
                 raise ValueError(error_msg)
             else:
                 num_points = len(elev_values)
-                
+
             range_obj.elev_fit = two_param_line_fit(t_values,elev_values,sigma_values,num_points)
 
 
@@ -132,7 +132,7 @@ class ACFFitting(object):
             #phase and elevation have same t values
             pwr_values = np.exp(-1 * math.fabs(range_obj.linear_pwr_fit.b) * phases.t)
             inverse_pwr_2_values = 1/(pwr_values**2)
-            
+
             #print(len(elevs.sigmas),len(elev_inverse_alpha_2),len(phases.sigmas),len(pwr_values))
 
             phase_numerator = ((phase_inverse_alpha_2 * inverse_pwr_2_values) - 1)
@@ -141,7 +141,7 @@ class ACFFitting(object):
 
             phase_sigmas = np.sqrt((phase_numerator/denominator))
             elev_sigmas = np.sqrt((elev_numerator/denominator))
-            
+
             if np.isnan(phase_sigmas).any() or np.isinf(phase_sigmas).any():
                 error_string = "Phase sigmas bad at range {0} -- phase_inverse_alphas,pwr_values"
                 error_string.format(range_obj.range_number)
@@ -163,18 +163,17 @@ class ACFFitting(object):
             elevs.set_sigmas(elev_sigmas)
 
     @staticmethod
-    def acf_phase_unwrap(range_list):
+    def acf_phase_unwrap(range_list,raw_data):
         """Unwraps the ACF phase data to be able to fit a straight line
 
         Takes phase data in a wrapping domain and converts it to a sloped
-        line using a 2 stage iterative process. This is to be able to fit 
+        line using a 2 stage iterative process. This is to be able to fit
         using linear least squares. Performed after sigma values are calculated.
 
         :param range_list: list of Range object with phase data
 
         """
         phase_correction = ACFFitting.phase_correction
-
         for range_obj in range_list:
             phases = range_obj.phases
 
@@ -182,20 +181,18 @@ class ACFFitting(object):
             sigma_values = phases.sigmas
             t_values = phases.t
 
-            phase_prev = phase_values[0]
-            sigma_prev = sigma_values[0]
-            t_prev = t_values[0]
-
-            
             slope_numerator, slope_denominator = 0, 0
 
             #This is to skip the first element in lists
-            iterator = np.nditer([phase_values,sigma_values,t_values])
-            iterator.iternext()
-            while not iterator.finished:
-                phase_curr = iterator[0]
-                sigma_curr = iterator[1]
-                t_curr = iterator[2]
+            phase_prev = phase_values[0]
+            sigma_prev = sigma_values[0]
+            t_prev = t_values[0]
+            orig_phase_iterator = np.nditer([phase_values,sigma_values,t_values])
+            orig_phase_iterator.iternext()
+            while not orig_phase_iterator.finished:
+                phase_curr = orig_phase_iterator[0]
+                sigma_curr = orig_phase_iterator[1]
+                t_curr = orig_phase_iterator[2]
 
                 phase_diff = phase_curr - phase_prev
 
@@ -211,37 +208,110 @@ class ACFFitting(object):
                 sigma_prev = sigma_curr
                 t_prev = t_curr
 
-                iterator.iternext()
+                orig_phase_iterator.iternext()
 
 
-            slope_estimate = slope_numerator / slope_denominator
-            new_phases = np.array([phase_correction(slope_estimate,phase,t) for phase,t in zip(phase_values,t_values)])
+            piecewise_slope_estimate = slope_numerator / slope_denominator
+            new_phases, total_2pi_corrections = phase_correction(piecewise_slope_estimate,
+                                                                    phase_values,t_values)
 
-            iterator = np.nditer([new_phases,sigma_values,t_values])
+            if total_2pi_corrections > 0:
 
-            S_xx, S_xy = 0.0, 0.0
-            while not iterator.finished:
-                phase = iterator[0]
-                sigma = iterator[1]
-                t = iterator[2]
-                if sigma > 0.0:
-                    S_xy = S_xy + (phase * t)/(sigma**2)
-                    S_xx = S_xx + (t**2)/(sigma**2)
+                corr_phase_iterator = np.nditer([new_phases,sigma_values,t_values])
+                S_xx, S_xy = 0.0, 0.0
+                while not corr_phase_iterator.finished:
+                    phase = corr_phase_iterator[0]
+                    sigma = corr_phase_iterator[1]
+                    t = corr_phase_iterator[2]
+                    if sigma > 0.0:
+                        S_xy = S_xy + (phase * t)/(sigma**2)
+                        S_xx = S_xx + (t**2)/(sigma**2)
 
-                iterator.iternext()
+                    corr_phase_iterator.iternext()
 
-            slope_estimate = S_xy / S_xx
-            new_phases = np.array([phase_correction(slope_estimate,phase,t) for phase,t in zip(new_phases,t_values)])
+                corr_slope_estimate = S_xy / S_xx
 
-            range_obj.phases.set_phases(new_phases)
-    
+                corr_phase_iterator.reset()
+                corr_slope_err = 0.0;
+                while not corr_phase_iterator.finished:
+                    phase = corr_phase_iterator[0]
+                    sigma = corr_phase_iterator[1]
+                    t = corr_phase_iterator[2]
+                    if sigma > 0.0:
+                        corr_slope_err = corr_slope_err + (corr_slope_estimate * t - phase) ** 2 / sigma ** 2
+
+                    corr_phase_iterator.iternext()
+
+                orig_phase_iterator.reset()
+                S_xx, S_xy = 0.0, 0.0
+                while not orig_phase_iterator.finished:
+                    phase = orig_phase_iterator[0]
+                    sigma = orig_phase_iterator[1]
+                    t = orig_phase_iterator[2]
+                    if sigma > 0.0:
+                        S_xy = S_xy + (phase * t)/(sigma**2)
+                        S_xx = S_xx + (t**2)/(sigma**2)
+
+                    orig_phase_iterator.iternext()
+
+                orig_slope_est = S_xy / S_xx
+
+                orig_phase_iterator.reset()
+                orig_slope_err = 0.0;
+                while not orig_phase_iterator.finished:
+                    phase = orig_phase_iterator[0]
+                    sigma = orig_phase_iterator[1]
+                    t = orig_phase_iterator[2]
+                    if sigma > 0.0:
+                        orig_slope_err = (orig_slope_err + (orig_slope_est * t - phase) ** 2
+                                            / sigma ** 2)
+
+                    orig_phase_iterator.iternext()
+
+                # time = """TIME {0}-{1:02}-{2:02}T{3:02}:{4:02}:{5:.6f}""".format(raw_data['time.yr'],
+                #                                                         raw_data['time.mo'],
+                #                                                         raw_data['time.dy'],
+                #                                                         raw_data['time.hr'],
+                #                                                         raw_data['time.mt'],
+                #                                                         raw_data['time.sc']+
+                #                                                         (raw_data['time.us']/1.0e6))
+                # beam = "BEAM {0:02}".format(raw_data['bmnum'])
+                # rang = "RANGE {0:02}".format(range_obj.range_number)
+                # tpic = "2PI CORRECTIONS {0}".format(total_2pi_corrections)
+                # ise = "INITIAL SLOPE EST {0:.6f}".format(piecewise_slope_estimate)
+                # cse = "CORRECTED SLOPE ERR {0:.6f}".format(corr_slope_err)
+                # cs = "CORRECTED SLOPE {0:.6f}".format(corr_slope_estimate)
+                # uce = "UNCORRECTED SLOPE ERR {0:.6f}".format(orig_slope_err)
+                # uc = "UNCORRECTED SLOPE {0:.6f}".format(orig_slope_est)
+
+                # print(time)
+                # print(beam)
+                # print(rang)
+                # print(tpic)
+                # print(ise)
+                # print(cse)
+                # print(cs)
+                # print(uce)
+                # print(uc)
+
+
+                if (orig_slope_err > corr_slope_err):
+                    range_obj.phases.set_phases(new_phases)
+
+
+
+
+                #new_phases, total_2pi_corrections = phase_correction(slope_estimate,phases,t_values)
+
+
+
     @staticmethod
     def xcf_phase_unwrap(range_list):
         """Unwraps the ACF phase data to be able to fit a straight line
 
         Takes phase data in a wrapping domain and converts it to a sloped
-        line. XCF unwrapping only needs 1 stage of iteration because it uses 
-        the ACF phase fit as an initial guess. This is to be able to fit 
+        line. XCF unwrapping only needs 1 stage of iteration because it uses
+        the ACF phase fit as an initial guess. This is to be able to fit
         using linear least squares. Performed after ACF phase is fit.
 
         :param range_list: list of Range object with phase data
@@ -261,7 +331,7 @@ class ACFFitting(object):
                 XCF phase unwrap!"""
                 raise ValueError(error_msg)
 
-            new_phases = np.array([phase_correction(range_obj.phase_fit.b,elev_phase,t) for elev_phase,t in zip(elev_phase_values,t_values)])
+            new_phases = phase_correction(range_obj.phase_fit.b,elev_phase_values,t_values)[0]
 
             iterator = np.nditer([new_phases,sigma_values,t_values])
             S_xx, S_xy = 0.0, 0.0
@@ -276,22 +346,25 @@ class ACFFitting(object):
                 iterator.iternext()
 
             slope_estimate = S_xy / S_xx
-            new_phases = np.array([phase_correction(slope_estimate,elev_phase,t) for elev_phase,t in zip(new_phases,t_values)])
+            new_phases = phase_correction(slope_estimate,new_phases,t_values)[0]
 
             range_obj.elevs.set_phases(new_phases)
 
     @staticmethod
-    def phase_correction(slope_estimate,phase_value,t_value):
+    def phase_correction(slope_estimate,phase_values,t_values):
         """Adds the estimated number of 2*pi corrections to phase values
 
         :param slope_estimate: predicted slope from iterative unwrap
         :param phase_value: a particular phase to correct
         :param t_value: a value in time for a particular phase point
-        :returns: phase shifted by number 2*pi corrections
+        :returns: phase shifted by number 2*pi corrections, total 2pi corrections.
 
         """
 
-        phase_predicted = slope_estimate * t_value
-        phase_correction = round((phase_predicted - phase_value)/(2 * math.pi))
 
-        return phase_value + phase_correction * 2 * math.pi
+        phase_predicted = slope_estimate * t_values
+        phase_correction = np.around((phase_predicted - phase_values)/(2 * math.pi))
+
+        corrected_phase = phase_values + (phase_correction * 2 * math.pi)
+        total_corrections = np.sum(np.abs(phase_correction))
+        return corrected_phase, total_corrections

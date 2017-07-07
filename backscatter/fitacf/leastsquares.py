@@ -23,7 +23,7 @@ class LeastSquaresValues(object):
         self.Q = 0.0
         self.chi_2 = 0.0
 
-    
+
 class LeastSquaresFitting(object):
     """This class holds all the methods needed to fit rawacf data
 
@@ -60,25 +60,25 @@ class LeastSquaresFitting(object):
         y_arr = y_arr[sigma_nonzero]
         sigmas = sigmas[sigma_nonzero]
 
-        sigma_2 = sigmas * sigmas
+        sigma_2 = sigmas**2
 
         if fit_type == 'linear':
             lst_sqrs.S = np.sum(np.reciprocal(sigma_2))
             lst_sqrs.S_x = np.sum(x_arr/sigma_2)
             lst_sqrs.S_y = np.sum(y_arr/sigma_2)
             lst_sqrs.S_xx = np.sum((x_arr * x_arr)/sigma_2)
-            lst_sqrs.S_xy = np.sum((x_arr * y_arr)/sigma_2) 
+            lst_sqrs.S_xy = np.sum((x_arr * y_arr)/sigma_2)
         elif fit_type == 'quadratic':
-            x_2 = x_arr * x_arr
-            lst_sqrs.S = np.sum(np.reciprocal(sigma_2)) 
+            x_2 = x_arr**2
+            lst_sqrs.S = np.sum(np.reciprocal(sigma_2))
             lst_sqrs.S_x = np.sum(x_2/sigma_2)
             lst_sqrs.S_y = np.sum(y_arr/sigma_2)
-            lst_sqrs.S_xx = np.sum((x_2 * x_2)/sigma_2)
+            lst_sqrs.S_xx = np.sum((x_2**2)/sigma_2)
             lst_sqrs.S_xy = np.sum((x_2 * y_arr)/sigma_2)
         else:
             error_msg = "Invalid fit type {0} in find_sums()".format(fit_type)
             raise ValueError(error_msg)
-            
+
 
     def one_parameter_line_fit(self,x_arr,y_arr,sigmas,num_points):
         """Computes a fit for the model y = bx
@@ -125,7 +125,7 @@ class LeastSquaresFitting(object):
         :param num_points: number of data points
         :returns: LeastSquaresValues with computed values
 
-        """        
+        """
         lst_sqrs = LeastSquaresValues()
 
         self.find_sums(lst_sqrs,x_arr,y_arr,sigmas,'linear')
@@ -163,7 +163,7 @@ class LeastSquaresFitting(object):
         :param num_points: number of data points
         :returns: LeastSquaresValues with computed values
 
-        """ 
+        """
         lst_sqrs = LeastSquaresValues()
 
         self.find_sums(lst_sqrs,x_arr,y_arr,sigmas,'quadratic')
@@ -202,7 +202,7 @@ class LeastSquaresFitting(object):
         :param sigmas: weighting for y-axis data
         :param fit_type: selects between 'linear' and 'quadratic' fits
 
-        """ 
+        """
         sigma_nonzero = np.nonzero(sigmas)
 
         x_arr = x_arr[sigma_nonzero]
