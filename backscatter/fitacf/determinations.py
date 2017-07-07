@@ -39,8 +39,6 @@ class Determinations(object):
 
         new_parameter_dict = {}
 
-        number_of_ranges = len(range_list)
-
         new_parameter_dict['radar.revision.major'] = raw_data['radar.revision.major']
         new_parameter_dict['radar.revision.minor'] = raw_data['radar.revision.minor']
         new_parameter_dict['origin.code'] = raw_data['origin.code']
@@ -93,6 +91,11 @@ class Determinations(object):
         new_parameter_dict['ptab'] = raw_data['ptab']
         new_parameter_dict['ltab'] = raw_data['ltab']
         new_parameter_dict['pwr0'] = self.lag_0_pwr_in_dB(raw_data,noise_pwr)
+
+        #if the range list is empty at this point, no other fields are to be written.
+        if not range_list:
+            return new_parameter_dict
+
         new_parameter_dict['slist'] = self.set_slist(range_list)
         new_parameter_dict['nlag'] = self.set_nlag(range_list)
         new_parameter_dict['qflg'] = self.set_qflg(range_list)
@@ -110,30 +113,41 @@ class Determinations(object):
         new_parameter_dict['sd_s'] = self.set_sdev_s(range_list)
         new_parameter_dict['sd_phi'] = self.set_sdev_phi(range_list)
         new_parameter_dict['gflg'] = self.set_gsct(new_parameter_dict['v'],new_parameter_dict['w_l'])
-        new_parameter_dict['x_qflg'] = [0] * number_of_ranges
-        new_parameter_dict['x_gflg'] = [0] * number_of_ranges
-        new_parameter_dict['x_p_l'] = [0] * number_of_ranges
-        new_parameter_dict['x_p_l_e'] = [0] * number_of_ranges
-        new_parameter_dict['x_p_s'] = [0] * number_of_ranges
-        new_parameter_dict['x_p_s_e'] = [0] * number_of_ranges
-        new_parameter_dict['x_v'] = [0] * number_of_ranges
-        new_parameter_dict['x_v_e'] = [0] * number_of_ranges
-        new_parameter_dict['x_w_l'] = [0] * number_of_ranges
-        new_parameter_dict['x_w_l_e'] = [0] * number_of_ranges
-        new_parameter_dict['x_w_s'] = [0] * number_of_ranges
-        new_parameter_dict['x_w_s_e'] = [0] * number_of_ranges
-        new_parameter_dict['phi0'] = self.set_xcf_phi0(range_list)
+
+        number_of_good_data = len(new_parameter_dict['qflg'])
+        float_zeroes = np.zeros(number_of_good_data)
+        int_zeroes = float_zeroes.astype(int)
+
+        new_parameter_dict['x_qflg'] = int_zeroes
+        new_parameter_dict['x_gflg'] = int_zeroes
+        new_parameter_dict['x_p_l'] = float_zeroes
+        new_parameter_dict['x_p_l_e'] = float_zeroes
+        new_parameter_dict['x_p_s'] = float_zeroes
+        new_parameter_dict['x_p_s_e'] = float_zeroes
+        new_parameter_dict['x_v'] = float_zeroes
+        new_parameter_dict['x_v_e'] = float_zeroes
+        new_parameter_dict['x_w_l'] = float_zeroes
+        new_parameter_dict['x_w_l_e'] = float_zeroes
+        new_parameter_dict['x_w_s'] = float_zeroes
+        new_parameter_dict['x_w_s_e'] = float_zeroes
+
+        if 'xcfd' not in raw_data:
+            new_parameter_dict['phi0'] = float_zeroes
+        else:
+            new_parameter_dict['phi0'] = self.set_xcf_phi0(range_list,raw_data)
+
         new_parameter_dict['phi0_e'] = self.set_xcf_phi0_err(range_list)
 
         if 'xcfd' not in raw_data:
-            elv = ([0] * number_of_ranges,[0] * number_of_ranges,[0] * number_of_ranges)
+            elv = {'low' : float_zeroes, 'normal' : float_zeroes, 'high' : float_zeroes}
         else:
             elv = self.find_elevation(range_list,raw_data,hdw_info)
-        new_parameter_dict['elv_low'] = elv[0]
-        new_parameter_dict['elv'] = elv[1]
-        new_parameter_dict['elv_high'] = elv[2]
-        new_parameter_dict['x_sd_l'] = [0] * number_of_ranges
-        new_parameter_dict['x_sd_s'] = [0] * number_of_ranges
+
+        new_parameter_dict['elv_low'] = elv['low']
+        new_parameter_dict['elv'] = elv['normal']
+        new_parameter_dict['elv_high'] = elv['high']
+        new_parameter_dict['x_sd_l'] = float_zeroes
+        new_parameter_dict['x_sd_s'] = float_zeroes
         new_parameter_dict['x_sd_phi'] = self.set_xcf_sdev_phi(range_list)
 
         return new_parameter_dict
@@ -357,7 +371,8 @@ class Determinations(object):
 
         w_s_conversion = C/(4*math.pi)/(raw_data['tfreq'] * 1000.0) *4.* math.sqrt(math.log(2))
 
-        w_s_calculation = lambda x,y: math.sqrt(math.fabs(x))/2./math.sqrt(math.fabs(y)) * w_s_conversion
+        w_s_calculation = lambda x,y: math.sqrt(x)/2./math.sqrt(math.fabs(y)) * w_s_conversion
+
         w_s_err = [w_s_calculation(range_obj.quadratic_pwr_fit_err.sigma_2_b,range_obj.quadratic_pwr_fit.b) for range_obj in range_list]
 
         return np.array(w_s_err)
@@ -439,6 +454,8 @@ class Determinations(object):
 
         elev_corr = hdw_info['phasesign'] * math.asin(z/antenna_sep)
 
+        elevations = {}
+
         if y > 0.0:
             phi_sign = 1
         else:
@@ -476,20 +493,21 @@ class Determinations(object):
         elev_calculation = lambda x: -elev_corr if (t < 0.0 or math.fabs(x) > 1.0) else math.asin(math.sqrt(x))
         elevation = [elev_calculation(t) for t in theta]
 
-        elevation_normal = [180/math.pi * (elev + elev_corr) for elev in elevation]
+        elevations['high'] = [180/math.pi * (elev + elev_corr) for elev in elevation]
 
         #Elevation errors
         psi_k2d2 = [p/(wave_num**2 * antenna_sep**2) for p in psi]
         df_by_dy = [pkd/math.sqrt(t * (1 - t)) for pkd,t in zip(psi_k2d2,theta)]
 
         elev_low_calculation = lambda x,y: 180/math.pi * math.sqrt(x) * math.fabs(y)
-        elevation_low = [elev_low_calculation(range_obj.elev_fit.sigma_2_a,dfdy) for range_obj,dfdy in zip(range_list,df_by_dy)]
+        errors = [range_obj.elev_fit.sigma_2_a for range_obj in range_list]
+        elevations['low'] = [elev_low_calculation(err,dfdy) for err,dfdy in zip(errors,df_by_dy)]
 
 
         #Experiment to compare fitted and measured elevation
         xcfd = raw_data['xcfd']
-        real = [xcfd[range_obj.range_number][0][0] for range_obj in range_list]
-        imag = [xcfd[range_obj.range_number][0][1] for range_obj in range_list]
+        real = [xcfd[range_obj.range_idx][0][0] for range_obj in range_list]
+        imag = [xcfd[range_obj.range_idx][0][1] for range_obj in range_list]
         xcf0_p = [math.atan2(i,r) for i,r in zip(imag,real)]
 
         psi_uu_calculation = lambda x: x + 2 * math.pi * math.floor((phase_diff_max-x)/(2*math.pi))
@@ -516,19 +534,21 @@ class Determinations(object):
         elev_calculation = lambda x: -elev_corr if (t < 0.0 or math.fabs(x) > 1.0) else math.asin(math.sqrt(x))
         elevation = [elev_calculation(t) for t in theta]
 
-        elevation_high = [180/math.pi * (elev + elev_corr) for elev in elevation]
+        elevations['normal'] = [180/math.pi * (elev + elev_corr) for elev in elevation]
 
-        return (elevation_low,elevation_normal,elevation_high)
+        return elevations
 
 
-    def set_xcf_phi0(self,range_list):
-        """Sets the fitted offset of the XCF phase for each range
+    def set_xcf_phi0(self,range_list, raw_data):
+        """Sets the unfitted offset of the XCF phase for each range
 
         :param range_list: a list of Range objects after fitting
-        :returns: an array of fitted XCF phases offsets
+        :returns: an array of unfitted XCF phases offsets
 
         """
-        phi0 = [range_obj.elev_fit.a for range_obj in range_list]
+        #phi0 = [range_obj.elev_fit.a for range_obj in range_list]
+        xcfd = [raw_data['xcfd'][range_obj.range_idx] for range_obj in range_list]
+        phi0 = [np.arctan2(xcf[0][1],xcf[0][0]) for xcf in xcfd]
 
         return np.array(phi0)
 

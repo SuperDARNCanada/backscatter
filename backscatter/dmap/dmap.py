@@ -36,7 +36,7 @@ class DmapDataError(Exception):
 
 
 class RawDmapScaler(object):
-    """Holds all the same data that the original C dmap scaler struct holds + 
+    """Holds all the same data that the original C dmap scaler struct holds +
     some additional type format identifiers
 
     """
@@ -53,7 +53,7 @@ class RawDmapScaler(object):
         :returns: dmap_type
 
         """
-        
+
         return self.dmap_type
 
     def get_name(self):
@@ -61,7 +61,7 @@ class RawDmapScaler(object):
 
         :returns: name
 
-        """     
+        """
 
         return self.name
 
@@ -70,7 +70,7 @@ class RawDmapScaler(object):
 
         :returns: mode
 
-        """   
+        """
 
         return self.mode
 
@@ -89,7 +89,7 @@ class RawDmapScaler(object):
 
         :returns: data_type_fmt
 
-        """       
+        """
 
         return self.data_type_fmt
 
@@ -98,7 +98,7 @@ class RawDmapScaler(object):
 
         :param data_type: DMAP type of the scaler
 
-        """        
+        """
         self.dmap_type = dmap_type
 
     def set_name(self,name):
@@ -124,7 +124,7 @@ class RawDmapScaler(object):
 
         :param data: data for the scaler to contain
 
-        """  
+        """
 
         self.data = data
 
@@ -134,12 +134,12 @@ class RawDmapScaler(object):
 
         :param fmt: DMAP type string format of the scaler
 
-        """  
+        """
 
         self.data_type_fmt = fmt
 
 class RawDmapArray(object):
-    """Holds all the same data that the original C dmap array struct holds + 
+    """Holds all the same data that the original C dmap array struct holds +
     some additional type information
 
     """
@@ -157,7 +157,7 @@ class RawDmapArray(object):
 
         :returns: dmap_type
 
-        """      
+        """
 
         return self.dmap_type
 
@@ -166,7 +166,7 @@ class RawDmapArray(object):
 
         :returns: name
 
-        """ 
+        """
 
         return self.name
 
@@ -190,7 +190,7 @@ class RawDmapArray(object):
 
     def get_arr_dimensions(self):
         """Returns a list of array dimensions
-        
+
         :returns: arr_dimensions
 
         """
@@ -220,7 +220,7 @@ class RawDmapArray(object):
 
         :param data_type: DMAP type of the array
 
-        """ 
+        """
 
         self.type = data_type
 
@@ -247,7 +247,7 @@ class RawDmapArray(object):
 
         :param dimension: total array dimensions
 
-        """        
+        """
 
         self.dimension = dimension
 
@@ -298,7 +298,7 @@ class RawDmapRecord(object):
     def set_num_arrays(self,num_arrays):
         """Sets the number of arrays in this DMAP record
 
-        :param num_arrays: number of arrays 
+        :param num_arrays: number of arrays
 
         """
 
@@ -306,9 +306,9 @@ class RawDmapRecord(object):
 
     def add_scaler(self,new_scaler):
         """Adds a new scaler to the DMAP record
-        
+
         :param new_scaler: new RawDmapScaler to add
-        
+
         """
 
         self.scalers.append(new_scaler)
@@ -445,7 +445,7 @@ class RawDmapRead(object):
                  Data is likely corrupted"""
                 raise DmapDataError(message)
             elif size > end_byte:
-                message = """INITIAL INTEGRITY: Initial integrity check shows 
+                message = """INITIAL INTEGRITY: Initial integrity check shows
                 total sizes mismatch buffer size. Data is likely corrupted"""
                 raise DmapDataError(message)
 
@@ -489,7 +489,7 @@ class RawDmapRead(object):
         elif size <= 0:
             message = "PARSE RECORD: Integrity check shows record size <= 0. Data is likely corrupted"
             raise DmapDataError(message)
-        
+
         num_scalers = self.read_data('i')
         num_arrays = self.read_data('i')
 
@@ -498,7 +498,7 @@ class RawDmapRead(object):
         if LOGGING == True:
             with open("logfile.txt",'a') as f:
                 f.write("PARSE RECORD: num_scalers {0} num_arrays {1}\n".format(num_scalers,num_arrays))
-        
+
         if(num_scalers <= 0):
             message = "PARSE RECORD: Number of scalers is 0 or negative."
             raise DmapDataError(message)
@@ -573,7 +573,7 @@ class RawDmapRead(object):
         mode = 7
         name = self.read_data('s')
         #print("name",name)
-            
+
         data_type = self.read_data('c')
         #print("datatype",data_type)
 
@@ -594,7 +594,7 @@ class RawDmapRead(object):
              record size. Record is likely corrupted"""
             raise DmapDataError(message)
         elif array_dimension <= 0:
-            message = """PARSE ARRAY: Parsed # of array dimensions are zero or 
+            message = """PARSE ARRAY: Parsed # of array dimensions are zero or
              negative. Record is likely corrupted"""
             raise DmapDataError(message)
 
@@ -638,17 +638,17 @@ class RawDmapRead(object):
         #know the sizes. They have to be manually read the slow way. Because chars
         #are encoded as hex literals, they have to be read one at a time to make sense.
         if data_type_fmt == 's' or data_type_fmt == 'c' or data_type_fmt == DMAP:
-            data_array = self.build_n_dimension_list(dimensions,data_type_fmt)
+            data_array = np.array(self.build_n_dimension_list(dimensions,data_type_fmt))
         else:
             data_array = self.read_numerical_array(data_type_fmt,dimensions,total_elements)
-        
+
         return RawDmapArray(name,data_type,data_type_fmt,mode,array_dimension,dimensions,data_array)
 
 
     def build_n_dimension_list(self,dim,data_type_fmt):
-        """This is used to build a list of multiple dimensions without knowing 
+        """This is used to build a list of multiple dimensions without knowing
         them ahead of time. This method is used to manually parse arrays from a dmap
-        
+
         :param dim: list of dimensions
         :param data_type_fmt: string format identifier of the DMAP data type
         :returns: n dimensional list of data parsed from buffer
@@ -667,7 +667,7 @@ class RawDmapRead(object):
 
     def read_data(self,data_type_fmt):
         """Reads an individual data type from the buffer
-        
+
         Given a format identifier, a number of bytes are read from the buffer
         and turned into the correct data type
 
@@ -728,7 +728,7 @@ class RawDmapRead(object):
         :param dimensions: a list of each array dimension
         :param total_elements: total elements in the array
         :returns: parsed numpy array in the correct shape
-        
+
         """
 
         #print(dimensions,total_elements)
@@ -741,7 +741,7 @@ class RawDmapRead(object):
 
 
         buf = self.dmap_bytearr[self.cursor:self.cursor+total_elements*self.get_num_bytes(data_type_fmt)]
-        
+
         try:
             array = np.frombuffer(buf,dtype=data_type_fmt)
         except ValueError as v:
@@ -812,7 +812,7 @@ class RawDmapRead(object):
 
 
 class RawDmapWrite(object):
-    """Contains members and methods relating to encoding dictionaries into a raw 
+    """Contains members and methods relating to encoding dictionaries into a raw
     dmap buffer.
 
     The ud_types are use to override the default types for riding. Useful
@@ -829,7 +829,7 @@ class RawDmapWrite(object):
         for dd in data_dicts:
             self.data_dict_to_dmap_rec(dd)
 
-        for rc in self.records: 
+        for rc in self.records:
             self.dmap_record_to_bytes(rc)
 
         #print(self.dmap_bytearr)
@@ -838,14 +838,14 @@ class RawDmapWrite(object):
             f.write(self.dmap_bytearr)
 
     def data_dict_to_dmap_rec(self,data_dict):
-        """ This method converts a data dictionary to a dmap record. 
+        """ This method converts a data dictionary to a dmap record.
 
-        The user defined dictionary specifies if any default types are to be 
-        overridden with your own type. This functions runs through each key/val 
+        The user defined dictionary specifies if any default types are to be
+        overridden with your own type. This functions runs through each key/val
         element of the dictionary and creates a RawDmapArray or RawDmapScaler
-        and adds them to a RawDmapRecord. Any python lists are converted to 
+        and adds them to a RawDmapRecord. Any python lists are converted to
         numpy arrays for fast and efficient convertion to bytes
-        
+
         :param data_dict: a dictionary of data to encode
 
         """
@@ -875,7 +875,7 @@ class RawDmapWrite(object):
                     # elif data_type_fmt == 's':
                     #   data = np.asarray(v,dtype=object)
                     else:
-                        data = np.asarray(v,dtype=data_type_fmt)                    
+                        data = np.asarray(v,dtype=data_type_fmt)
 
                 dmap_type = self.convert_fmt_to_dmap_type(data_type_fmt)
                 #dimensions need to be reversed to match what dmap expects
@@ -895,7 +895,7 @@ class RawDmapWrite(object):
     def find_datatype_fmt(self,data):
         """Input could be an array of any dimensions so will recurse until
         fundamental type is found
-        
+
         :param data: data for which to find its type format
         :returns: a string format identifier for the python data type
 
@@ -907,11 +907,11 @@ class RawDmapWrite(object):
             return self.type_to_fmt(data)
 
     def dmap_record_to_bytes(self,record):
-        """This method converts a dmap record to the byte format that is written to file. 
-        
+        """This method converts a dmap record to the byte format that is written to file.
+
         Format is code,length of record,number of scalers,number of arrays, followed by
         the scalers and then the arrays
-        
+
         :param record: a RawDmapRecord
 
         """
@@ -972,11 +972,11 @@ class RawDmapWrite(object):
             data_bytes = struct.pack(data_type_fmt,scaler.get_data())
 
         total_bytes = name_bytes + dmap_type_bytes + data_bytes
-        
+
         return total_bytes
 
     def dmap_array_to_bytes(self,array):
-        """This method converts a RawDmapArray to the byte format to be written out. 
+        """This method converts a RawDmapArray to the byte format to be written out.
 
         The format is name,then type, number of dimensions, dimensions, array data.
 
@@ -988,7 +988,7 @@ class RawDmapWrite(object):
         name = "{0}\0".format(array.get_name())
         struct_fmt = '{0}s'.format(len(name))
         name_bytes = struct.pack(struct_fmt,name)
-        
+
         dmap_type_bytes = struct.pack('c',chr(array.get_type()))
 
         data_type_fmt = array.get_datatype_fmt()
@@ -1009,7 +1009,7 @@ class RawDmapWrite(object):
     def type_to_fmt(self,data):
         """Finds data types and converts them to a format specifier for struct or numpy
         packing methods
-        
+
         :param data: data for which to find type
         :returns: a string format identifier for the python data type
 
@@ -1066,7 +1066,7 @@ class RawDmapWrite(object):
                 'Q' : ULONG,
             }.get(fmt,None)
 
-        
+
 def dicts_to_file(data_dicts,file_path,file_type=''):
     """This function abstracts the type overrides for the main SuperDARN
     file types. These dictionaries write out the types to be compatible
@@ -1384,12 +1384,12 @@ def dicts_to_file(data_dicts,file_path,file_type=''):
             if k not in ud_types:
                 message = "DICTS_TO_FILE: A supplied dictionary contains extra field {0}".format(k)
                 raise DmapDataError(message)
-                
+
     for k,v in ud_types.iteritems():
         if k not in dd:
             message = "DICTS_TO_FILE: Supplied dictionary is missing field {0}".format(k)
             raise DmapDataError(message)
-                
+
     wr = RawDmapWrite(data_dicts,file_path,ud_types)
 
 
@@ -1398,10 +1398,10 @@ def parse_dmap_format_from_file(filepath,raw_dmap=False):
      into a nice list of dictionaries
 
     :param filepath: file path to get DMAP data from
-    :param raw_dmap: a flag signalling to return the RawDmapRead object 
+    :param raw_dmap: a flag signalling to return the RawDmapRead object
     instead of data dictionaries
     :returns: list of data dictionaries
-    
+
     """
 
     dm = RawDmapRead(filepath)
@@ -1419,7 +1419,7 @@ def parse_dmap_format_from_stream(stream,raw_dmap=False):
     into a nice list of dictionaries
 
     :param stream: buffer of raw bytes to convert
-    :param raw_dmap: a flag signalling to return the RawDmapRead object 
+    :param raw_dmap: a flag signalling to return the RawDmapRead object
     instead of data dictionaries
     :returns: list of data dictionaries
 
@@ -1438,7 +1438,7 @@ def parse_dmap_format_from_stream(stream,raw_dmap=False):
 
 def dmap_rec_to_dict(rec):
     """Converts the dmap record data to a easy to use dictionary
-    
+
     :param rec: a RawDmapRecord
     :returns: a dictionary of all data contained in the record
 
@@ -1456,7 +1456,7 @@ def dmap_rec_to_dict(rec):
 
 if __name__ == '__main__':
     pass
-    #dm = RawDmapRead('20150831.0000.03.bks.rawacf')
+    dm = RawDmapRead('20101211.0047.24.cve.rawacf')
     #records = parse_dmap_format_from_file('testfiles/20150831.0000.03.bks.rawacf')
     #print(records[5])
     #records = parse_dmap_format('20150831.0000.03.bks_corrupt.rawacf')
