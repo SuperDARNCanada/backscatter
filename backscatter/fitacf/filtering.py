@@ -122,6 +122,7 @@ class Filtering(object):
         pwr0 = raw_data['pwr0']
         mplgs = raw_data['mplgs']
         nave = raw_data['nave']
+        noise_mean = raw_data['noise.mean']
 
         #Division by zero error
         if nave <= 0:
@@ -132,32 +133,20 @@ class Filtering(object):
             if len(range_obj.pwrs.log_pwrs) == 0:
                 continue
 
-            log_sigma_fluc = math.log(FLUCTUATION_CUTOFF_COEFF * pwr0[range_number]/math.sqrt(2 * nave))
+            log_sigma_fluc = np.log(FLUCTUATION_CUTOFF_COEFF * pwr0[range_number]/math.sqrt(2 * nave))
 
             bad_indices = []
             cutoff_lag = mplgs + 1
 
-            # iterator = np.nditer([range_obj.pwrs.log_pwrs,range_obj.alpha_2],flags=['f_index'])
-            # while not iterator.finished:
-            #   log_pwr,alpha_2 = iterator[0],iterator[1]
-            #   idx = iterator.index
-            #   if idx > cutoff_lag:
-            #       bad_indices.append(idx)
-            #   else:
-            #       if((1/math.sqrt(alpha_2) <= ALPHA_CUTOFF) and (log_pwr <= log_sigma_fluc)):
-            #           cutoff_lag = idx
-            #           bad_indices.append(idx)
-
-            #   iterator.iternext()
-
-            for idx,(log_pwr,alpha_2) in enumerate(zip(range_obj.pwrs.log_pwrs,range_obj.alpha_2)):
+            for idx,(log_pwr,alpha_2) in enumerate(zip(range_obj.pwrs.log_pwrs,range_obj.pwrs.alpha_2)):
                 if idx > cutoff_lag:
                     bad_indices.append(idx)
                 else:
-                    if((1/math.sqrt(alpha_2) <= ALPHA_CUTOFF) and (log_pwr <= log_sigma_fluc)):
+                    if((1/np.sqrt(alpha_2) <= ALPHA_CUTOFF) and
+                        ((log_pwr < log_sigma_fluc) or np.isclose(log_pwr,log_sigma_fluc))):
                         cutoff_lag = idx
                         bad_indices.append(idx)
-            noise_mean = raw_data['noise.mean']
+
             range_obj.pwrs.remove_bad_points(bad_indices)
 
 
@@ -189,7 +178,30 @@ class Filtering(object):
             ln = len(rang.pwrs.log_pwrs)
             if (pw <= cutoff_pwr) or (ln < MIN_LAGS):
                 bad_indices.append(idx)
+                continue
+            #check to see if all powers are equal
+            pwr_val = rang.pwrs.log_pwrs[0]
+            for pwr in rang.pwrs.log_pwrs:
+                if pwr != pwr_val:
+                    break
+            else:
+                bad_indices.append(idx)
+
+
 
 
         for i in sorted(bad_indices,reverse=True):
             del ranges[i]
+
+    @staticmethod
+    def filter_bad_fits(ranges):
+        bad_indices = []
+        for idx,range_obj in enumerate(ranges):
+            if (range_obj.phase_fit.b == 0.0 or
+                range_obj.linear_pwr_fit.b == 0.0 or
+                range_obj.quadratic_pwr_fit.b == 0.0):
+                bad_indices.append(idx)
+
+        for i in sorted(bad_indices,reverse=True):
+            del ranges[i]
+

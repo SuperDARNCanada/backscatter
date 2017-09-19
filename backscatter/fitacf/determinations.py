@@ -218,9 +218,9 @@ class Determinations(object):
 
         """
 
-        noise_dB = 10 * math.log10(noise_pwr);
+        noise_dB = 10 * np.log10(noise_pwr);
 
-        p_l_conversion = lambda x: 10 * x/math.log(10) - noise_dB
+        p_l_conversion = lambda x: 10 * x/np.log(10) - noise_dB
 
         p_l = [p_l_conversion(range_obj.linear_pwr_fit.a) for range_obj in range_list]
 
@@ -235,7 +235,7 @@ class Determinations(object):
 
         """
 
-        p_l_err_conversion = lambda x: 10 * math.sqrt(x) / math.log(10)
+        p_l_err_conversion = lambda x: 10 * np.sqrt(x) / np.log(10)
 
         p_l_err = [p_l_err_conversion(range_obj.linear_pwr_fit_err.sigma_2_a) for range_obj in range_list]
 
@@ -251,9 +251,9 @@ class Determinations(object):
 
         """
 
-        noise_dB = 10 * math.log10(noise_pwr)
+        noise_dB = 10 * np.log10(noise_pwr)
 
-        p_s_conversion = lambda x: 10 * x/math.log(10) - noise_dB
+        p_s_conversion = lambda x: 10 * x/np.log(10) - noise_dB
 
         p_s = [p_s_conversion(range_obj.quadratic_pwr_fit.a) for range_obj in range_list]
 
@@ -268,7 +268,7 @@ class Determinations(object):
 
         """
 
-        p_s_err_conversion = lambda x: 10 * math.sqrt(x) / math.log(10)
+        p_s_err_conversion = lambda x: 10 * np.sqrt(x) / np.log(10)
 
         p_s_err = [p_s_err_conversion(range_obj.quadratic_pwr_fit_err.sigma_2_a) for range_obj in range_list]
 
@@ -285,7 +285,7 @@ class Determinations(object):
 
         """
 
-        vel_conversion = C/((4*math.pi)*(raw_data['tfreq'] * 1000.0)) * hdw_info['velsign']
+        vel_conversion = C/((4*np.pi)*(raw_data['tfreq'] * 1000.0)) * hdw_info['velsign']
 
         vel_calculation = lambda x: x * vel_conversion
         vel = [vel_calculation(range_obj.phase_fit.b) for range_obj in range_list]
@@ -302,9 +302,9 @@ class Determinations(object):
         :returns: an array of computed velocites
 
         """
-        vel_conversion = C/((4*math.pi)*(raw_data['tfreq'] * 1000.0)) * hdw_info['velsign']
+        vel_conversion = C/((4*np.pi)*(raw_data['tfreq'] * 1000.0)) * hdw_info['velsign']
 
-        vel_err = [math.sqrt(range_obj.phase_fit.sigma_2_b) * vel_conversion for range_obj in range_list]
+        vel_err = [np.sqrt(range_obj.phase_fit.sigma_2_b) * vel_conversion for range_obj in range_list]
 
         return np.array(vel_err)
 
@@ -318,9 +318,9 @@ class Determinations(object):
 
         """
 
-        width_conversion = C/((4*math.pi)*(raw_data['tfreq'] * 1000.0))*2.0
+        width_conversion = C/((4*np.pi)*(raw_data['tfreq'] * 1000.0))*2.0
 
-        w_l_calculation = lambda x: math.fabs(x) * width_conversion
+        w_l_calculation = lambda x: np.fabs(x) * width_conversion
         w_l = [w_l_calculation(range_obj.linear_pwr_fit.b) for range_obj in range_list]
 
         return np.array(w_l)
@@ -336,9 +336,9 @@ class Determinations(object):
 
         """
 
-        width_conversion = C/((4*math.pi)*(raw_data['tfreq'] * 1000.0))*2.0
+        width_conversion = C/((4*np.pi)*(raw_data['tfreq'] * 1000.0))*2.0
 
-        w_l_err_calculation = lambda x: math.sqrt(x) * width_conversion
+        w_l_err_calculation = lambda x: np.sqrt(x) * width_conversion
         w_l_err = [w_l_err_calculation(range_obj.linear_pwr_fit_err.sigma_2_b) for range_obj in range_list]
 
         return np.array(w_l_err)
@@ -352,9 +352,9 @@ class Determinations(object):
 
         """
 
-        w_s_conversion = C/(4*math.pi)/(raw_data['tfreq'] * 1000.0) *4.* math.sqrt(math.log(2))
+        w_s_conversion = C/(4*np.pi)/(raw_data['tfreq'] * 1000.0) *4.* np.sqrt(np.log(2))
 
-        w_s_calculation = lambda x: math.sqrt(math.fabs(x)) * w_s_conversion
+        w_s_calculation = lambda x: np.sqrt(np.fabs(x)) * w_s_conversion
         w_s = [w_s_calculation(range_obj.quadratic_pwr_fit.b) for range_obj in range_list]
 
         return np.array(w_s)
@@ -369,9 +369,9 @@ class Determinations(object):
 
         """
 
-        w_s_conversion = C/(4*math.pi)/(raw_data['tfreq'] * 1000.0) *4.* math.sqrt(math.log(2))
+        w_s_conversion = C/(4*np.pi)/(raw_data['tfreq'] * 1000.0) *4.* np.sqrt(np.log(2))
 
-        w_s_calculation = lambda x,y: math.sqrt(x)/2./math.sqrt(math.fabs(y)) * w_s_conversion
+        w_s_calculation = lambda x,y: np.sqrt(x)/2./np.sqrt(np.fabs(y)) * w_s_conversion
 
         w_s_err = [w_s_calculation(range_obj.quadratic_pwr_fit_err.sigma_2_b,range_obj.quadratic_pwr_fit.b) for range_obj in range_list]
 
@@ -450,9 +450,9 @@ class Determinations(object):
         y = hdw_info['interoffy']
         z = hdw_info['interoffz']
 
-        antenna_sep = math.sqrt(x*x + y*y + z*z)
+        antenna_sep = np.sqrt(x*x + y*y + z*z)
 
-        elev_corr = hdw_info['phasesign'] * math.asin(z/antenna_sep)
+        elev_corr = hdw_info['phasesign'] * np.arcsin(z/antenna_sep)
 
         elevations = {}
 
@@ -463,21 +463,21 @@ class Determinations(object):
             elev_corr = -elev_corr
 
         azi_offset = hdw_info['maxbeams']/2 - 0.5
-        phi_0 = hdw_info['beamsep'] * ( bmnum- azi_offset) * math.pi/180
-        c_phi_0 = math.cos(phi_0)
+        phi_0 = hdw_info['beamsep'] * ( bmnum- azi_offset) * np.pi/180
+        c_phi_0 = np.cos(phi_0)
 
-        wave_num = 2 * math.pi * tfreq * 1000/C;
+        wave_num = 2 * np.pi * tfreq * 1000/C;
 
-        cable_offset = -2 * math.pi * tfreq * 1000 * hdw_info['tdiff'] * 1.0e-6
+        cable_offset = -2 * np.pi * tfreq * 1000 * hdw_info['tdiff'] * 1.0e-6
 
         phase_diff_max = phi_sign * wave_num * antenna_sep * c_phi_0 + cable_offset
 
-        psi_calculation = lambda x: x + 2 * math.pi * math.floor((phase_diff_max-x)/(2*math.pi))
+        psi_calculation = lambda x: x + 2 * np.pi * np.floor((phase_diff_max-x)/(2*np.pi))
         psi_uncorrected = [psi_calculation(range_obj.elev_fit.a) for range_obj in range_list]
 
         if(phi_sign < 0):
-            psi_uncorrected = [psi_u + 2 * math.pi for psi_u in psi_uncorrected]
-            #psi_uncorrected = psi_uncorrected + 2 * math.pi
+            psi_uncorrected = [psi_u + 2 * np.pi for psi_u in psi_uncorrected]
+            #psi_uncorrected = psi_uncorrected + 2 * np.pi
         #psi_uncorrected = np.array(psi_uncorrected)
 
         psi = [psi_u - cable_offset for psi_u in psi_uncorrected]
@@ -485,21 +485,21 @@ class Determinations(object):
         psi_kd = [p/(wave_num * antenna_sep) for p in psi]
         theta = [c_phi_0**2 - pkd**2 for pkd in psi_kd]
 
-        # if( (theta < 0.0) or (math.fabs(theta) > 1.0)):
+        # if( (theta < 0.0) or (np.fabs(theta) > 1.0)):
         #   elevation = -elev_corr
         # else:
-        #   elevation = math.asin(math.sqrt(theta))
+        #   elevation = np.arcsin(np.sqrt(theta))
 
-        elev_calculation = lambda x: -elev_corr if (t < 0.0 or math.fabs(x) > 1.0) else math.asin(math.sqrt(x))
+        elev_calculation = lambda x: -elev_corr if (t < 0.0 or np.fabs(x) > 1.0) else np.arcsin(np.sqrt(x))
         elevation = [elev_calculation(t) for t in theta]
 
-        elevations['high'] = [180/math.pi * (elev + elev_corr) for elev in elevation]
+        elevations['high'] = [180/np.pi * (elev + elev_corr) for elev in elevation]
 
         #Elevation errors
         psi_k2d2 = [p/(wave_num**2 * antenna_sep**2) for p in psi]
-        df_by_dy = [pkd/math.sqrt(t * (1 - t)) for pkd,t in zip(psi_k2d2,theta)]
+        df_by_dy = [pkd/np.sqrt(t * (1 - t)) for pkd,t in zip(psi_k2d2,theta)]
 
-        elev_low_calculation = lambda x,y: 180/math.pi * math.sqrt(x) * math.fabs(y)
+        elev_low_calculation = lambda x,y: 180/np.pi * np.sqrt(x) * np.fabs(y)
         errors = [range_obj.elev_fit.sigma_2_a for range_obj in range_list]
         elevations['low'] = [elev_low_calculation(err,dfdy) for err,dfdy in zip(errors,df_by_dy)]
 
@@ -508,15 +508,15 @@ class Determinations(object):
         xcfd = raw_data['xcfd']
         real = [xcfd[range_obj.range_idx][0][0] for range_obj in range_list]
         imag = [xcfd[range_obj.range_idx][0][1] for range_obj in range_list]
-        xcf0_p = [math.atan2(i,r) for i,r in zip(imag,real)]
+        xcf0_p = [np.arctan2(i,r) for i,r in zip(imag,real)]
 
-        psi_uu_calculation = lambda x: x + 2 * math.pi * math.floor((phase_diff_max-x)/(2*math.pi))
+        psi_uu_calculation = lambda x: x + 2 * np.pi * np.floor((phase_diff_max-x)/(2*np.pi))
         psi_uncorrected_unfitted = [psi_uu_calculation(x) for x in xcf0_p]
 
         # if phi_sign < 0:
-        #   psi_uncorrected_unfitted = psi_uncorrected_unfitted + (2 * math.pi)
+        #   psi_uncorrected_unfitted = psi_uncorrected_unfitted + (2 * np.pi)
 
-        psi_uu_calculation = lambda x: x + (2 * math.pi) if phi_sign < 0 else x
+        psi_uu_calculation = lambda x: x + (2 * np.pi) if phi_sign < 0 else x
         psi_uncorrected_unfitted = [psi_uu_calculation(p_uu) for p_uu in psi_uncorrected_unfitted]
 
         psi = [p_uu - cable_offset for p_uu in psi_uncorrected_unfitted]
@@ -528,13 +528,13 @@ class Determinations(object):
         #   elevation = -elev_corr
         # }
         # else{
-        #   elevation = np.asin(np.sqrt(theta))
+        #   elevation = np.arcsin(np.sqrt(theta))
         # }
 
-        elev_calculation = lambda x: -elev_corr if (t < 0.0 or math.fabs(x) > 1.0) else math.asin(math.sqrt(x))
+        elev_calculation = lambda x: -elev_corr if (t < 0.0 or np.fabs(x) > 1.0) else np.arcsin(np.sqrt(x))
         elevation = [elev_calculation(t) for t in theta]
 
-        elevations['normal'] = [180/math.pi * (elev + elev_corr) for elev in elevation]
+        elevations['normal'] = [180/np.pi * (elev + elev_corr) for elev in elevation]
 
         return elevations
 
@@ -560,7 +560,7 @@ class Determinations(object):
         :returns: an array of fitted XCF phases offset errors
 
         """
-        phi0_err = [math.sqrt(range_obj.elev_fit.sigma_2_a) for range_obj in range_list]
+        phi0_err = [np.sqrt(range_obj.elev_fit.sigma_2_a) for range_obj in range_list]
 
         return np.array(phi0_err)
 

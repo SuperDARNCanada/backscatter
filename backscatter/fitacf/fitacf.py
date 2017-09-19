@@ -73,7 +73,7 @@ class PowerDataPoints(object):
         self.log_pwrs = None
         self.sigmas = None
         self.t = None
-
+        self.alpha_2 = range_obj.alpha_2
         self.create_arrays(raw_data,lags,range_obj)
 
 
@@ -145,12 +145,14 @@ class PowerDataPoints(object):
         self.log_pwrs = self.log_pwrs[mask]
         self.sigmas = self.sigmas[mask]
         self.t = self.t[mask]
+        self.alpha_2 = self.alpha_2[mask]
 
     def remove_inf_points(self,non_inf_indices):
 
         self.log_pwrs = self.log_pwrs[non_inf_indices]
         self.sigmas = self.sigmas[non_inf_indices]
         self.t = self.t[non_inf_indices]
+        self.alpha_2 = self.alpha_2[mask]
 
 
 class PhaseDataPoints(object):
@@ -167,6 +169,7 @@ class PhaseDataPoints(object):
         self.phases = None
         self.sigmas = None
         self.t = None
+        self.alpha_2 = range_obj.alpha_2
 
         self.create_arrays(raw_data,phase_type,lags,range_obj)
 
@@ -200,7 +203,7 @@ class PhaseDataPoints(object):
 
         self.phases = np.arctan2(imag,real)
 
-        self.sigmas = np.copy(range_obj.alpha_2)
+        self.sigmas = np.zeros(mplgs)
 
         self.t = np.array([lag['number'] * mpinc * 1.0e-6 for lag in lags])
 
@@ -225,6 +228,7 @@ class PhaseDataPoints(object):
         self.phases = self.phases[mask]
         self.sigmas = self.sigmas[mask]
         self.t = self.t[mask]
+        self.alpha_2 = self.alpha_2[mask]
 
     def set_sigmas(self,sigmas):
         """Reassign sigma values
@@ -371,6 +375,9 @@ def debug_output(range_list):
         print("quadratic_pwr_fit_err.b",range_obj.quadratic_pwr_fit_err.b)
         print("quadratic_pwr_fit_err.sigma_2_a",range_obj.quadratic_pwr_fit_err.sigma_2_a)
         print("quadratic_pwr_fit_err.sigma_2_b",range_obj.quadratic_pwr_fit_err.sigma_2_b)
+        print("ACF LOG POWERS")
+        for p,s,t in zip(range_obj.pwrs.log_pwrs, range_obj.pwrs.sigmas,range_obj.pwrs.t):
+            print("power",p,"sigma",s,"t",t)
         print("ACF PHASES")
         for p,s,t in zip(range_obj.phases.phases,range_obj.phases.sigmas,range_obj.phases.t):
             print("phi",p,"sigma",s,"t",t)
@@ -439,11 +446,13 @@ def _fit(raw_data, debug_mode=False):
     ACFFitting.acf_phase_unwrap(range_list,raw_data)
     ACFFitting.acf_phase_fitting(range_list)
 
+    Filtering.filter_bad_fits(range_list)
+
     ACFFitting.xcf_phase_unwrap(range_list)
     ACFFitting.xcf_phase_fitting(range_list)
 
-    if debug_mode:
-        debug_output(range_list)
+    #if debug_mode:
+        #debug_output(range_list)
 
     determined_parameters = Determinations(raw_data,range_list,noise_pwr)
     return determined_parameters.paramater_dict
