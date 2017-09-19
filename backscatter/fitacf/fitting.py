@@ -331,6 +331,9 @@ class ACFFitting(object):
 
 
         phase_predicted = slope_estimate * t_values
+
+        #I add a rounding here so that if there is inexact division of pi/2pi then
+        #.49999999... gets rounded up first.
         phase_diff = np.around((phase_predicted - phase_values)/(2 * math.pi), decimals=5)
         phase_correction = np.array([round(pd) for pd in phase_diff])
 
