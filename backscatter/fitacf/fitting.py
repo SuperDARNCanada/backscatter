@@ -126,8 +126,8 @@ class ACFFitting(object):
             pwrs = range_obj.pwrs
             elevs = range_obj.elevs
 
-            phase_inverse_alpha_2 = 1/phases.sigmas
-            elev_inverse_alpha_2 = 1/elevs.sigmas
+            phase_inverse_alpha_2 = 1/phases.alpha_2
+            elev_inverse_alpha_2 = 1/elevs.alpha_2
 
             #phase and elevation have same t values
             pwr_values = np.exp(-1 * math.fabs(range_obj.linear_pwr_fit.b) * phases.t)
@@ -145,12 +145,12 @@ class ACFFitting(object):
             if np.isnan(phase_sigmas).any() or np.isinf(phase_sigmas).any():
                 error_string = "Phase sigmas bad at range {0} -- phase_inverse_alphas,pwr_values"
                 error_string.format(range_obj.range_number)
-                eprint(error_string,phase_inverse_alpha_2,pwr_values)
+                #eprint(error_string,phase_inverse_alpha_2,pwr_values)
 
             if np.isnan(elev_sigmas).any() or np.isinf(elev_sigmas).any():
                 error_string = "Elevation sigmas bad at range {0} -- elev_inverse_alphas,pwr_values"
                 error_string.format(range_obj.range_number)
-                eprint(error_string,elev_inverse_alpha_2,pwr_values)
+                #eprint(error_string,elev_inverse_alpha_2,pwr_values)
 
             phase_sigmas = np.array([math.pi if sigma > math.pi else sigma for sigma in phase_sigmas])
             elev_sigmas = np.array([math.pi if sigma > math.pi else sigma for sigma in elev_sigmas])
@@ -268,41 +268,9 @@ class ACFFitting(object):
 
                     orig_phase_iterator.iternext()
 
-                # time = """TIME {0}-{1:02}-{2:02}T{3:02}:{4:02}:{5:.6f}""".format(raw_data['time.yr'],
-                #                                                         raw_data['time.mo'],
-                #                                                         raw_data['time.dy'],
-                #                                                         raw_data['time.hr'],
-                #                                                         raw_data['time.mt'],
-                #                                                         raw_data['time.sc']+
-                #                                                         (raw_data['time.us']/1.0e6))
-                # beam = "BEAM {0:02}".format(raw_data['bmnum'])
-                # rang = "RANGE {0:02}".format(range_obj.range_number)
-                # tpic = "2PI CORRECTIONS {0}".format(total_2pi_corrections)
-                # ise = "INITIAL SLOPE EST {0:.6f}".format(piecewise_slope_estimate)
-                # cse = "CORRECTED SLOPE ERR {0:.6f}".format(corr_slope_err)
-                # cs = "CORRECTED SLOPE {0:.6f}".format(corr_slope_estimate)
-                # uce = "UNCORRECTED SLOPE ERR {0:.6f}".format(orig_slope_err)
-                # uc = "UNCORRECTED SLOPE {0:.6f}".format(orig_slope_est)
-
-                # print(time)
-                # print(beam)
-                # print(rang)
-                # print(tpic)
-                # print(ise)
-                # print(cse)
-                # print(cs)
-                # print(uce)
-                # print(uc)
-
 
                 if (orig_slope_err > corr_slope_err):
                     range_obj.phases.set_phases(new_phases)
-
-
-
-
-                #new_phases, total_2pi_corrections = phase_correction(slope_estimate,phases,t_values)
-
 
 
     @staticmethod
@@ -345,7 +313,7 @@ class ACFFitting(object):
 
                 iterator.iternext()
 
-            slope_estimate = S_xy / S_xx
+            slope_estimate = np.divide(S_xy , S_xx)
             new_phases = phase_correction(slope_estimate,new_phases,t_values)[0]
 
             range_obj.elevs.set_phases(new_phases)
@@ -363,7 +331,11 @@ class ACFFitting(object):
 
 
         phase_predicted = slope_estimate * t_values
-        phase_correction = np.around((phase_predicted - phase_values)/(2 * math.pi))
+
+        #I add a rounding here so that if there is inexact division of pi/2pi then
+        #.49999999... gets rounded up first.
+        phase_diff = np.around((phase_predicted - phase_values)/(2 * math.pi), decimals=5)
+        phase_correction = np.array([round(pd) for pd in phase_diff])
 
         corrected_phase = phase_values + (phase_correction * 2 * math.pi)
         total_corrections = np.sum(np.abs(phase_correction))
