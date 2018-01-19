@@ -66,14 +66,14 @@ class CustomInstall(install):
 #Set up arguments for installation
 setup_args  =  {
     'name' : "backscatter",
-    'version' : "2016.08",
+    'version' : "2016.08", # REVIEW #1 Is the version up to date?
     'description' : "A Python package of analysis tools for SuperDARN data",
-    'url' : "",
+    'url' : "", # REVIEW #1 Github page?
     'author' : "SuperDARN Canada",
     'license' : "GNU",
     'packages' : find_packages(exclude=['contrib', 'docs', 'tests']),
     'setup_requires' : ['ConfigParser'],
-    'install_requires' : ['numpy>=1.8'],
+    'install_requires' : ['numpy>=1.8'], # REVIEW #1 Setuptools? python2.7?
     'cmdclass' : {'install' : CustomInstall,},
 }
 

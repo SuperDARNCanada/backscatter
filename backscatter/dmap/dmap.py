@@ -1,9 +1,10 @@
-import os
+import os # REVIEW #7 License at top of file
 import struct
 import time
 import gc
 import numpy as np
 import sys
+
 
 DMAP = 0
 CHAR = 1
@@ -18,15 +19,17 @@ USHORT = 17
 UINT = 18
 ULONG = 19
 
-DMAP_DATA_KEYS=[0,1,2,3,4,8,9,10,16,17,18,19]
+DMAP_DATA_KEYS = [0, 1, 2, 3, 4, 8, 9, 10, 16, 17, 18, 19]
 
 LOGGING = False
+
 
 class EmptyFileError(Exception):
     """Raised if the dmap file is empty or corrupted
 
     """
     pass
+
 
 class DmapDataError(Exception):
     """Raised if there is an error in parsing of data
@@ -40,7 +43,7 @@ class RawDmapScaler(object):
     some additional type format identifiers
 
     """
-    def __init__(self,name,dmap_type,data_type_fmt,mode,data):
+    def __init__(self, name, dmap_type, data_type_fmt, mode, data):
         self.dmap_type = dmap_type
         self.name = name
         self.mode = mode
@@ -93,7 +96,7 @@ class RawDmapScaler(object):
 
         return self.data_type_fmt
 
-    def set_type(self,data_type):
+    def set_type(self, data_type):  # REVIEW #0 should this be damp_type?
         """Sets the DMAP type of the scaler
 
         :param data_type: DMAP type of the scaler
@@ -101,7 +104,7 @@ class RawDmapScaler(object):
         """
         self.dmap_type = dmap_type
 
-    def set_name(self,name):
+    def set_name(self, name):
         """Sets the name of the scaler
 
         :param name: scaler name
@@ -110,7 +113,7 @@ class RawDmapScaler(object):
 
         self.name = name
 
-    def set_mode(self,mode):
+    def set_mode(self, mode):
         """Sets the mode of the scaler
 
         :param mode: scaler mode
@@ -119,7 +122,7 @@ class RawDmapScaler(object):
 
         self.mode = mode
 
-    def set_data(self,data):
+    def set_data(self, data):
         """Sets the data of the scaler
 
         :param data: data for the scaler to contain
@@ -128,7 +131,7 @@ class RawDmapScaler(object):
 
         self.data = data
 
-    def set_datatype_fmt(self,fmt):
+    def set_datatype_fmt(self, fmt):
         """Sets the string format identifier of the scaler that
         corresponds to the DMAP type of the scaler
 
@@ -138,12 +141,13 @@ class RawDmapScaler(object):
 
         self.data_type_fmt = fmt
 
+
 class RawDmapArray(object):
     """Holds all the same data that the original C dmap array struct holds +
     some additional type information
 
     """
-    def __init__(self,name,dmap_type,data_type_fmt,mode,dimension,arr_dimensions,data):
+    def __init__(self, name, dmap_type, data_type_fmt, mode, dimension, arr_dimensions, data):  # REVIEW #26 It looks like you have four variables that are very similar and there might be some bugs here... dmap_type, data_type_fmt, data_type and data.
         self.dmap_type = dmap_type
         self.name = name
         self.mode = mode
@@ -215,16 +219,16 @@ class RawDmapArray(object):
 
         return self.data_type_fmt
 
-    def set_type(self,data_type):
+    def set_type(self, data_type):
         """Sets the DMAP type of the array
 
         :param data_type: DMAP type of the array
 
         """
 
-        self.type = data_type
+        self.type = data_type  # REVIEW #0 should this be 'dmap_type' or something else? pycharm is complaining about "instance attribute type defined outside __init__"
 
-    def set_name(self,name):
+    def set_name(self, name):
         """Sets the name of the array
 
         :param name: name of the array
@@ -233,7 +237,7 @@ class RawDmapArray(object):
 
         self.name = name
 
-    def set_mode(self,mode):
+    def set_mode(self, mode):
         """Sets the mode of the array
 
         :param mode: the mode of the array
@@ -242,7 +246,7 @@ class RawDmapArray(object):
 
         self.mode = mode
 
-    def set_dimension(self,dimension):
+    def set_dimension(self, dimension):
         """Sets the number of array dimensions
 
         :param dimension: total array dimensions
@@ -251,7 +255,7 @@ class RawDmapArray(object):
 
         self.dimension = dimension
 
-    def set_arr_dimensions(self,arr_dimensions):
+    def set_arr_dimensions(self, arr_dimensions):
         """Sets the list of dimensions for the array
 
         :param arr_dimensions: list of dimensions for the array
@@ -259,7 +263,7 @@ class RawDmapArray(object):
         """
         self.arr_dimensions = arr_dimensions
 
-    def set_data(self,data):
+    def set_data(self, data):
         """Sets the array data
 
         :param data: the data associated with the array
@@ -267,7 +271,7 @@ class RawDmapArray(object):
         """
         self.data = data
 
-    def set_datatype_fmt(self,fmt):
+    def set_datatype_fmt(self, fmt):
         """Sets the DMAP type string format identifier of the array
 
         :param fmt: the string format identifier
@@ -286,7 +290,7 @@ class RawDmapRecord(object):
         self.scalers = []
         self.arrays = []
 
-    def set_num_scalers(self,num_scalers):
+    def set_num_scalers(self, num_scalers):
         """Sets the number of scalers in this DMAP record
 
         :param num_scalers: number of scalers
@@ -295,7 +299,7 @@ class RawDmapRecord(object):
 
         self.num_scalers = num_scalers
 
-    def set_num_arrays(self,num_arrays):
+    def set_num_arrays(self, num_arrays):
         """Sets the number of arrays in this DMAP record
 
         :param num_arrays: number of arrays
@@ -304,7 +308,7 @@ class RawDmapRecord(object):
 
         self.num_arrays = num_arrays
 
-    def add_scaler(self,new_scaler):
+    def add_scaler(self, new_scaler):
         """Adds a new scaler to the DMAP record
 
         :param new_scaler: new RawDmapScaler to add
@@ -314,7 +318,7 @@ class RawDmapRecord(object):
         self.scalers.append(new_scaler)
         self.num_scalers = self.num_scalers + 1
 
-    def set_scalers(self,scalers):
+    def set_scalers(self, scalers):
         """Sets the DMAP scaler list to a new list
 
         :param scalers: new list of scalers
@@ -324,7 +328,7 @@ class RawDmapRecord(object):
         self.scalers = scalers
         self.num_scalers = len(scalers)
 
-    def add_array(self,new_array):
+    def add_array(self, new_array):
         """Adds a new array to the DMAP record
 
         :param new_array: new RawDmapArray to add
@@ -334,7 +338,7 @@ class RawDmapRecord(object):
         self.arrays.append(new_array)
         self.num_arrays = self.num_arrays + 1
 
-    def set_arrays(self,arrays):
+    def set_arrays(self, arrays):
         """Sets the DMAP array list to a new list
 
         :param arrays: new list of arrays
@@ -380,6 +384,7 @@ class RawDmapRecord(object):
 
         return self.arrays
 
+
 class RawDmapRead(object):
     """Contains members and methods relating to parsing files into raw Dmap objects.
         Takes in a buffer path to decode. Default is open a file, but can optionally
@@ -387,13 +392,13 @@ class RawDmapRead(object):
 
     """
 
-    def __init__(self,dmap_data,stream=False):
+    def __init__(self, dmap_data, stream=False):
         self.cursor = 0
         self.dmap_records = []
 
-        #parses the whole file/stream into a byte array
+        # parses the whole file/stream into a byte array
         if stream is False:
-            with open(dmap_data,'rb') as f:
+            with open(dmap_data, 'rb') as f:
                 self.dmap_bytearr = bytearray(f.read())
 
             if os.stat(dmap_data).st_size == 0:
@@ -405,10 +410,9 @@ class RawDmapRead(object):
 
             self.dmap_bytearr = bytearray(dmap_data)
 
-
         self.test_initial_data_integrity()
 
-        #parse bytes until end of byte array
+        # parse bytes until end of byte array
         pr = self.parse_record
         add_rec = self.dmap_records.append
 
@@ -422,10 +426,10 @@ class RawDmapRead(object):
             new_record = pr()
             add_rec(new_record)
             counter = counter + 1
-            #print(self.cursor,len(self.dmap_bytearr))
+            # print(self.cursor,len(self.dmap_bytearr)) # REVIEW #33 could remove this line
 
-        if (self.cursor > end_byte):
-            message = "Bytes attempted {0} does not match the size of file {1}".format(self.cursor,end_byte)
+        if (self.cursor > end_byte): # REVIEw #39 parenthesis or no parenthesis ?
+            message = "Bytes attempted {0} does not match the size of file {1}".format(self.cursor, end_byte)
             raise DmapDataError(message)
 
     def test_initial_data_integrity(self):
@@ -439,7 +443,7 @@ class RawDmapRead(object):
         while self.cursor < end_byte:
             code = self.read_data('i')
             size = self.read_data('i')
-            #print(code,size,end_byte)
+            #print(code,size,end_byte)  # REVIEW #33 could remove this line
             if size <= 0:
                 message = """INITIAL INTEGRITY: Initial integrity check shows size <= 0.
                  Data is likely corrupted"""
@@ -452,21 +456,20 @@ class RawDmapRead(object):
             size_total = size_total + size
 
             if size_total > end_byte:
-                message = """INTIAL INTEGRITY: Initial integrity check shows record size mismatch.
+                message = """INITIAL INTEGRITY: Initial integrity check shows record size mismatch.
                  Data is likely corrupted"""
                 raise DmapDataError(message)
 
             self.cursor = self.cursor + size - 2 * self.get_num_bytes('i')
 
-        #print (end_byte,size_total)
+        #print (end_byte,size_total)  # REVIEW #33 could remove this line
         if size_total != end_byte:
-            #print(size_total,end_byte)
+            #print(size_total,end_byte)  # REVIEW #33 could remove this line
             message = """INITIAL INTEGRITY: Initial integrity check shows total size < buffer size.
              Data is likely corrupted"""
             raise DmapDataError(message)
 
         self.cursor = 0
-
 
     def parse_record(self):
         """Parses a single dmap record from the buffer
@@ -476,18 +479,18 @@ class RawDmapRead(object):
 
         code = self.read_data('i')
         size = self.read_data('i')
-        #print(code,size,self.cursor,len(self.dmap_bytearr))
+        #print(code,size,self.cursor,len(self.dmap_bytearr))  # REVIEW #33 could remove this line
 
-        if LOGGING == True:
+        if LOGGING:  # REVIEW #40 pep style for if cond == TRUE, use if cond or if cond is True instead (review other if statements in this file)
             with open("logfile.txt",'a') as f:
                 f.write("PARSE RECORD: code {0} size {1}\n".format(code,size))
 
-        #adding 8 bytes because code+size are part of the record.
+        # adding 8 bytes because code+size are part of the record.
         if size > (len(self.dmap_bytearr) - self.cursor + 2 * self.get_num_bytes('i')):
-            message = "PARSE RECORD: Integrity check shows record size bigger than remaining buffer. Data is likely corrupted"
+            message = "PARSE RECORD: Integrity check shows record size bigger than remaining buffer. Data is likely corrupted"  # REVIEW #31 Try to get this line under 100 chars
             raise DmapDataError(message)
         elif size <= 0:
-            message = "PARSE RECORD: Integrity check shows record size <= 0. Data is likely corrupted"
+            message = "PARSE RECORD: Integrity check shows record size <= 0. Data is likely corrupted"  # REVIEW #31 Try to get this line under 100 chars
             raise DmapDataError(message)
 
         num_scalers = self.read_data('i')

@@ -19,7 +19,7 @@
 # import os
 # import sys
 # sys.path.insert(0, os.path.abspath('.'))
-#mock modules for c extensions
+#mock modules for c extensions // REVIEW #40 pycharm complaining about whitespace here
 import sys
 from mock import Mock as MagicMock
 
