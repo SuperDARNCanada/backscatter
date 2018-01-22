@@ -1,4 +1,4 @@
-import os  # REVIEW #7 License at top of file
+import os  # REVIEW #7 License at top of file REVIEW #36 - We think this file can be split into several files (one for exceptions, one for the scalar, array and record classees and one for the read/write classes. Also all the methods at the bottom could be defined in a utility class of their own perhaps?)
 import struct
 import time  # REVIEW #33 Libraries only needed for commented out code in if __main__
 import gc
@@ -38,7 +38,7 @@ class DmapDataError(Exception):
     pass
 
 
-class RawDmapScaler(object):
+class RawDmapScaler(object):  # REVIEW #1 Finish docs to say what each parameter is supposed to be
     """Holds all the same data that the original C dmap scaler struct holds +
     some additional type format identifiers
 
@@ -50,7 +50,7 @@ class RawDmapScaler(object):
         self.data = data
         self.data_type_fmt = data_type_fmt
 
-    def get_type(self):
+    def get_type(self):  # REVIEW #26 - get_dmap_type?
         """Returns the DMAP type of the scaler
 
         :returns: dmap_type
@@ -86,7 +86,7 @@ class RawDmapScaler(object):
 
         return self.data
 
-    def get_datatype_fmt(self):
+    def get_datatype_fmt(self):  # REVIEW # 26 - Put underscore - "get_data_type_fmt"
         """Returns the string format identifier of the scaler that
         corresponds to the DMAP type
 
@@ -96,7 +96,7 @@ class RawDmapScaler(object):
 
         return self.data_type_fmt
 
-    def set_type(self, data_type):  # REVIEW #0 should this be damp_type?
+    def set_type(self, data_type):  # REVIEW #0 should this be dmap_type? REVIEW #26 - set_dmap_type?
         """Sets the DMAP type of the scaler
 
         :param data_type: DMAP type of the scaler
@@ -131,7 +131,7 @@ class RawDmapScaler(object):
 
         self.data = data
 
-    def set_datatype_fmt(self, fmt):
+    def set_datatype_fmt(self, fmt):  # REVIEW #26 - put underscore - set_data_type_fmt to be consistent with the variable name
         """Sets the string format identifier of the scaler that
         corresponds to the DMAP type of the scaler
 
@@ -156,7 +156,7 @@ class RawDmapArray(object):
         self.data = data
         self.data_type_fmt = data_type_fmt
 
-    def get_type(self):
+    def get_type(self):  # REVIEW # 26 - get_dmap_type?
         """Returns the DMAP type of the array
 
         :returns: dmap_type
@@ -209,7 +209,7 @@ class RawDmapArray(object):
 
         return self.data
 
-    def get_datatype_fmt(self):
+    def get_datatype_fmt(self):   # REVIEW # 26 - get_data_type_fmt ?
         """Returns the string format identifier of the scaler that
         corresponds to the DMAP type
 
@@ -219,7 +219,7 @@ class RawDmapArray(object):
 
         return self.data_type_fmt
 
-    def set_type(self, data_type):
+    def set_type(self, data_type):   # REVIEW # 26 - depending upon if this is supposed to be dmap_type or not, change to set_dmap_type
         """Sets the DMAP type of the array
 
         :param data_type: DMAP type of the array
@@ -271,7 +271,7 @@ class RawDmapArray(object):
         """
         self.data = data
 
-    def set_datatype_fmt(self, fmt):
+    def set_datatype_fmt(self, fmt):  # REVIEW # 26 - set_data_type_fmt
         """Sets the DMAP type string format identifier of the array
 
         :param fmt: the string format identifier
@@ -281,7 +281,7 @@ class RawDmapArray(object):
 
 
 class RawDmapRecord(object):
-    """Contains the arrays and scalers associated with a dmap record.
+    """Contains the arrays and scalers associated with a dmap record.  # REVIEW # 26 - 'Scaler' is spelled incorrectly, it should be 'scalar'
 
     """
     def __init__(self):
@@ -290,7 +290,7 @@ class RawDmapRecord(object):
         self.scalers = []
         self.arrays = []
 
-    def set_num_scalers(self, num_scalers):
+    def set_num_scalers(self, num_scalers):  # REVIEW #33 - Do you really need this function? There's add_scalar which handles the num_scalars variable, and also set_scalars which sets the variable to the length of the array.
         """Sets the number of scalers in this DMAP record
 
         :param num_scalers: number of scalers
@@ -299,7 +299,7 @@ class RawDmapRecord(object):
 
         self.num_scalers = num_scalers
 
-    def set_num_arrays(self, num_arrays):
+    def set_num_arrays(self, num_arrays): # REVIEW #33 - see above, do you really need this function?
         """Sets the number of arrays in this DMAP record
 
         :param num_arrays: number of arrays
@@ -392,12 +392,12 @@ class RawDmapRead(object):
 
     """
 
-    def __init__(self, dmap_data, stream=False):
+    def __init__(self, dmap_data, stream=False):  # REVIEW #1 docstring, especially explain how one would use a stream
         self.cursor = 0
         self.dmap_records = []
 
         # parses the whole file/stream into a byte array
-        if stream is False:
+        if stream is False:  # REVIEW #39 - be consistent across all conditionals, 'if not stream'
             with open(dmap_data, 'rb') as f:
                 self.dmap_bytearr = bytearray(f.read())
 
@@ -424,11 +424,12 @@ class RawDmapRead(object):
                     f.write("TOP LEVEL LOOP: iteration {0}\n".format(counter))
             new_record = pr()
             add_rec(new_record)
-            counter = counter + 1
+            counter = counter + 1  # REVIEW #30 You can put this into the 'if LOGGING' statement, since counter is only used when logging.
             # print(self.cursor,len(self.dmap_bytearr)) # REVIEW #33 could remove this line
 
         if (self.cursor > end_byte):  # REVIEw #39 parenthesis or no parenthesis ?
-            message = "Bytes attempted {0} does not match the size of file {1}".format(self.cursor, end_byte)
+            message = "Bytes attempted {0} does not match the size of file {1}".format(self.cursor,
+                                                                                       end_byte)
             raise DmapDataError(message)
 
     def test_initial_data_integrity(self):
@@ -437,9 +438,9 @@ class RawDmapRead(object):
 
         """
 
-        end_byte = len(self.dmap_bytearr)
+        end_byte = len(self.dmap_bytearr)  # REVIEW #22 can you make end_byte a member of the class? It's used in multiple places and it's not changed
         size_total = 0
-        while self.cursor < end_byte:
+        while self.cursor < end_byte: # REVIEW #0 this assumes that self.cursor has not been changed from 0 -> I see that it's only the constructor that calls this but would it be safer to set it to 0 at the top of this method?
             code = self.read_data('i')  # REVIEW #33 if the commented out print statement is not needed then take these two lines out
             size = self.read_data('i')
             # print(code,size,end_byte)  # REVIEW #33 could remove this line
@@ -670,7 +671,7 @@ class RawDmapRead(object):
 
         return dim_data
 
-    def read_data(self, data_type_fmt):
+    def read_data(self, data_type_fmt):  # REVIEW #1 We see that you pass an 'i' to this function from initial_data_integrity_check and we don't see what 'i' means. Can you add documentation to describe the possible data_type_fmt values?
         """Reads an individual data type from the buffer
 
         Given a format identifier, a number of bytes are read from the buffer
@@ -682,9 +683,9 @@ class RawDmapRead(object):
         """
 
         if LOGGING:
-            with open("logfile.txt", 'a') as f:
+            with open("logfile.txt", 'a') as f:  # REVIEW # 29 magic string for logfile name. can be global?
                 f.write("READ DATA: cursor "
-                        "{0} bytelen {1}\n".format(self.cursor, len(self.dmap_bytearr)))
+                        "{0} bytelen {1}\n".format(self.cursor, len(self.dmap_bytearr)))  # REVIEW #22 can use self.end_byte here if you make it a member. (also 3 more times this function)
 
         if self.cursor >= len(self.dmap_bytearr):
             message = "READ DATA: Cursor extends out of buffer. Data is likely corrupted"
@@ -701,7 +702,7 @@ class RawDmapRead(object):
             data = self.dmap_bytearr[self.cursor]
             # print (data,data_type) #REVIEW #33
             self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
-        elif data_type_fmt is not 's':
+        elif data_type_fmt is not 's':  # REVIEW #3 - weird... difficult to follow, so if we passed in an 'i' this is the branch that would be executed? pls document with a comment
             data = struct.unpack_from(data_type_fmt, buffer(self.dmap_bytearr), self.cursor)
             # print(data,data_type) #REVIEW #33
             self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
