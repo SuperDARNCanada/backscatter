@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime  # REVIEW License
 import numpy as np
 import math
 import sys
@@ -14,6 +14,7 @@ C = 299792458.0
 FITACF_REVISION_MAJOR = int(config.get("fitacf","fitacf_revision_major"))
 FITACF_REVISON_MINOR = int(config.get("fitacf","fitacf_revision_minor"))
 
+
 class Determinations(object):
     """This is a class to construct a new dictionary of final deteminations
 
@@ -24,9 +25,10 @@ class Determinations(object):
 
     def __init__(self,raw_data,range_list,noise_pwr):
         hdw_info = hdw[raw_data['stid']]
-        self.paramater_dict = self.new_parameter_dictionary(hdw_info,raw_data,range_list,noise_pwr)
+        self.paramater_dict = self.new_parameter_dictionary(hdw_info, raw_data,
+                                                            range_list, noise_pwr)
 
-    def new_parameter_dictionary(self,hdw_info,raw_data,range_list,noise_pwr):
+    def new_parameter_dictionary(self, hdw_info, raw_data, range_list, noise_pwr):
         """Creates the new dictionary of parameters from fitted data
 
         :param hdw_info: a dictionary of the radar hardware information
@@ -90,29 +92,29 @@ class Determinations(object):
         new_parameter_dict['noise.vel'] = 0.0
         new_parameter_dict['ptab'] = raw_data['ptab']
         new_parameter_dict['ltab'] = raw_data['ltab']
-        new_parameter_dict['pwr0'] = self.lag_0_pwr_in_dB(raw_data,noise_pwr)
+        new_parameter_dict['pwr0'] = self.lag_0_pwr_in_dB(raw_data, noise_pwr)
 
         #if the range list is empty at this point, no other fields are to be written.
-        if not range_list:
+        if not range_list:  # REVIEE # - Consistency with 'cond is False' or 'not cond'
             return new_parameter_dict
 
         new_parameter_dict['slist'] = self.set_slist(range_list)
         new_parameter_dict['nlag'] = self.set_nlag(range_list)
         new_parameter_dict['qflg'] = self.set_qflg(range_list)
-        new_parameter_dict['p_l'] = self.set_p_l(range_list,noise_pwr)
+        new_parameter_dict['p_l'] = self.set_p_l(range_list, noise_pwr)
         new_parameter_dict['p_l_e'] = self.set_p_l_err(range_list)
-        new_parameter_dict['p_s'] = self.set_p_s(range_list,noise_pwr)
+        new_parameter_dict['p_s'] = self.set_p_s(range_list, noise_pwr)
         new_parameter_dict['p_s_e'] = self.set_p_s_err(range_list)
-        new_parameter_dict['v'] = self.set_v(range_list,raw_data,hdw_info)
-        new_parameter_dict['v_e'] = self.set_v_err(range_list,raw_data,hdw_info)
-        new_parameter_dict['w_l'] = self.set_w_l(range_list,raw_data)
-        new_parameter_dict['w_l_e'] = self.set_w_l_err(range_list,raw_data)
-        new_parameter_dict['w_s'] = self.set_w_s(range_list,raw_data)
-        new_parameter_dict['w_s_e'] = self.set_w_s_err(range_list,raw_data)
+        new_parameter_dict['v'] = self.set_v(range_list, raw_data, hdw_info)
+        new_parameter_dict['v_e'] = self.set_v_err(range_list, raw_data, hdw_info)
+        new_parameter_dict['w_l'] = self.set_w_l(range_list, raw_data)
+        new_parameter_dict['w_l_e'] = self.set_w_l_err(range_list, raw_data)
+        new_parameter_dict['w_s'] = self.set_w_s(range_list, raw_data)
+        new_parameter_dict['w_s_e'] = self.set_w_s_err(range_list, raw_data)
         new_parameter_dict['sd_l'] = self.set_sdev_l(range_list)
         new_parameter_dict['sd_s'] = self.set_sdev_s(range_list)
         new_parameter_dict['sd_phi'] = self.set_sdev_phi(range_list)
-        new_parameter_dict['gflg'] = self.set_gsct(new_parameter_dict['v'],new_parameter_dict['w_l'])
+        new_parameter_dict['gflg'] = self.set_gsct(new_parameter_dict['v'], new_parameter_dict['w_l'])
 
         number_of_good_data = len(new_parameter_dict['qflg'])
         float_zeroes = np.zeros(number_of_good_data)
@@ -134,14 +136,14 @@ class Determinations(object):
         if 'xcfd' not in raw_data:
             new_parameter_dict['phi0'] = float_zeroes
         else:
-            new_parameter_dict['phi0'] = self.set_xcf_phi0(range_list,raw_data)
+            new_parameter_dict['phi0'] = self.set_xcf_phi0(range_list, raw_data)
 
         new_parameter_dict['phi0_e'] = self.set_xcf_phi0_err(range_list)
 
         if 'xcfd' not in raw_data:
             elv = {'low' : float_zeroes, 'normal' : float_zeroes, 'high' : float_zeroes}
         else:
-            elv = self.find_elevation(range_list,raw_data,hdw_info)
+            elv = self.find_elevation(range_list, raw_data, hdw_info)
 
         new_parameter_dict['elv_low'] = elv['low']
         new_parameter_dict['elv'] = elv['normal']
@@ -152,8 +154,7 @@ class Determinations(object):
 
         return new_parameter_dict
 
-
-    def lag_0_pwr_in_dB(self,raw_data,noise_pwr):
+    def lag_0_pwr_in_dB(self, raw_data, noise_pwr):
         """Converts lag 0 powers to dB
 
         :param raw_data: a dictionary of raw data parameters
@@ -164,13 +165,12 @@ class Determinations(object):
 
         pwr0 = raw_data['pwr0']
 
-        pwr_conversion = lambda x: 10 * np.log10((x - noise_pwr)/noise_pwr)
-        pwr_dB = [pwr_conversion(pwr) if (pwr - noise_pwr > 0.0) else -50.0 for pwr in pwr0]
+        pwr_conversion = lambda x: 10 * np.log10((x - noise_pwr) / noise_pwr)  # REVIEW # - what does 10 mean?
+        pwr_dB = [pwr_conversion(pwr) if (pwr - noise_pwr > 0.0) else -50.0 for pwr in pwr0]  # REVIEW # - what does 0 or 50.0 mean?
 
         return np.array(pwr_dB)
 
-
-    def set_slist(self,range_list):
+    def set_slist(self, range_list):
         """Creates the array of good ranges
 
         :param range_list: a list of Range objects left after filtering
@@ -182,8 +182,7 @@ class Determinations(object):
 
         return np.array(slist)
 
-
-    def set_nlag(self,range_list):
+    def set_nlag(self, range_list):
         """Sets the number of points used for power fitting
 
         :param range_list: a list of Range objects with data points
@@ -196,7 +195,7 @@ class Determinations(object):
         return np.array(nlag)
 
 
-    def set_qflg(self,range_list):
+    def set_qflg(self, range_list):
         """Creates a qflg array
 
         All data is valid at this point so this
@@ -206,10 +205,9 @@ class Determinations(object):
         :returns: an array of ones
         """
 
-        return np.ones(len(range_list),dtype=np.int64)
+        return np.ones(len(range_list), dtype=np.int64)
 
-
-    def set_p_l(self,range_list,noise_pwr):
+    def set_p_l(self, range_list, noise_pwr):
         """Computes the power in dB of the linear power fit at each range
 
         :param range_list: a list of Range objects after fitting
@@ -220,14 +218,14 @@ class Determinations(object):
 
         noise_dB = 10 * np.log10(noise_pwr);
 
-        p_l_conversion = lambda x: 10 * x/np.log(10) - noise_dB
+        p_l_conversion = lambda x: 10 * x / np.log(10) - noise_dB  # REVIEW # - what does 10 mean?
 
         p_l = [p_l_conversion(range_obj.linear_pwr_fit.a) for range_obj in range_list]
 
         return np.array(p_l)
 
 
-    def set_p_l_err(self,range_list):
+    def set_p_l_err(self, range_list):
         """Computes the power in dB of the linear power fit error at each range
 
         :param range_list: a list of Range objects after fitting
@@ -235,14 +233,13 @@ class Determinations(object):
 
         """
 
-        p_l_err_conversion = lambda x: 10 * np.sqrt(x) / np.log(10)
+        p_l_err_conversion = lambda x: 10 * np.sqrt(x) / np.log(10)  # REVIEW # - what does 10 mean?
 
         p_l_err = [p_l_err_conversion(range_obj.linear_pwr_fit_err.sigma_2_a) for range_obj in range_list]
 
         return np.array(p_l_err)
 
-
-    def set_p_s(self,range_list,noise_pwr):
+    def set_p_s(self, range_list, noise_pwr):
         """Computes the power in dB of the quadratic power fit at each range
 
         :param range_list: a list of Range objects after fitting
@@ -251,16 +248,16 @@ class Determinations(object):
 
         """
 
-        noise_dB = 10 * np.log10(noise_pwr)
+        noise_dB = 10 * np.log10(noise_pwr)  # REVIEW # - what does 10 mean?
 
-        p_s_conversion = lambda x: 10 * x/np.log(10) - noise_dB
+        p_s_conversion = lambda x: 10 * x / np.log(10) - noise_dB  # REVIEW # - what does 10 mean?
 
         p_s = [p_s_conversion(range_obj.quadratic_pwr_fit.a) for range_obj in range_list]
 
         return np.array(p_s)
 
 
-    def set_p_s_err(self,range_list):
+    def set_p_s_err(self, range_list):
         """Computes the power in dB of the quadratic power fit error at each range
 
         :param range_list: a list of Range objects after fitting
@@ -268,14 +265,13 @@ class Determinations(object):
 
         """
 
-        p_s_err_conversion = lambda x: 10 * np.sqrt(x) / np.log(10)
+        p_s_err_conversion = lambda x: 10 * np.sqrt(x) / np.log(10)  # REVIEW # - what does 10 mean?
 
         p_s_err = [p_s_err_conversion(range_obj.quadratic_pwr_fit_err.sigma_2_a) for range_obj in range_list]
 
         return np.array(p_s_err)
 
-
-    def set_v(self,range_list,raw_data,hdw_info):
+    def set_v(self,range_list, raw_data,hdw_info):
         """Computes the fitted velocity at each range
 
         :param range_list: a list of Range objects after fitting
@@ -285,15 +281,14 @@ class Determinations(object):
 
         """
 
-        vel_conversion = C/((4*np.pi)*(raw_data['tfreq'] * 1000.0)) * hdw_info['velsign']
+        vel_conversion = C / ((4 * np.pi) * (raw_data['tfreq'] * 1000.0)) * hdw_info['velsign']  # REVIEW # - what does 4 and 1000.0 mean?
 
         vel_calculation = lambda x: x * vel_conversion
         vel = [vel_calculation(range_obj.phase_fit.b) for range_obj in range_list]
 
         return np.array(vel)
 
-
-    def set_v_err(self,range_list,raw_data,hdw_info):
+    def set_v_err(self, range_list, raw_data, hdw_info):
         """Computes the fitted velocity error at each range
 
         :param range_list: a list of Range objects after fitting
@@ -302,14 +297,13 @@ class Determinations(object):
         :returns: an array of computed velocites
 
         """
-        vel_conversion = C/((4*np.pi)*(raw_data['tfreq'] * 1000.0)) * hdw_info['velsign']
+        vel_conversion = C / ((4 * np.pi) * (raw_data['tfreq'] * 1000.0)) * hdw_info['velsign']  # REVIEW # - what does 4 and 1000 mean?
 
         vel_err = [np.sqrt(range_obj.phase_fit.sigma_2_b) * vel_conversion for range_obj in range_list]
 
         return np.array(vel_err)
 
-
-    def set_w_l(self,range_list,raw_data):
+    def set_w_l(self, range_list, raw_data):
         """Computes the spectral width from the linear power fit at each range
 
         :param range_list: a list of Range objects after fitting
@@ -318,15 +312,14 @@ class Determinations(object):
 
         """
 
-        width_conversion = C/((4*np.pi)*(raw_data['tfreq'] * 1000.0))*2.0
+        width_conversion = C / ((4 * np.pi) * (raw_data['tfreq'] * 1000.0)) * 2.0  # REVIEW # - what does 4, 1000 and 2 mean?
 
         w_l_calculation = lambda x: np.fabs(x) * width_conversion
         w_l = [w_l_calculation(range_obj.linear_pwr_fit.b) for range_obj in range_list]
 
         return np.array(w_l)
 
-
-    def set_w_l_err(self,range_list,raw_data):
+    def set_w_l_err(self, range_list, raw_data):
         """Computes the spectral width error from the linear power fit errors
         at each range
 
@@ -336,14 +329,14 @@ class Determinations(object):
 
         """
 
-        width_conversion = C/((4*np.pi)*(raw_data['tfreq'] * 1000.0))*2.0
+        width_conversion = C / ((4 * np.pi) * (raw_data['tfreq'] * 1000.0))*2.0  # REVIEW # - what does 4, 1000 and 2 mean?
 
         w_l_err_calculation = lambda x: np.sqrt(x) * width_conversion
         w_l_err = [w_l_err_calculation(range_obj.linear_pwr_fit_err.sigma_2_b) for range_obj in range_list]
 
         return np.array(w_l_err)
 
-    def set_w_s(self,range_list,raw_data):
+    def set_w_s(self, range_list, raw_data):
         """Computes the spectral width from the quadratic power fit at each range
 
         :param range_list: a list of Range objects after fitting
@@ -352,14 +345,14 @@ class Determinations(object):
 
         """
 
-        w_s_conversion = C/(4*np.pi)/(raw_data['tfreq'] * 1000.0) *4.* np.sqrt(np.log(2))
+        w_s_conversion = C / (4 * np.pi) / (raw_data['tfreq'] * 1000.0) * 4.0 * np.sqrt(np.log(2))  # REVIEW # - what does 4, 1000 and 2 mean?
 
         w_s_calculation = lambda x: np.sqrt(np.fabs(x)) * w_s_conversion
         w_s = [w_s_calculation(range_obj.quadratic_pwr_fit.b) for range_obj in range_list]
 
         return np.array(w_s)
 
-    def set_w_s_err(self,range_list,raw_data):
+    def set_w_s_err(self, range_list, raw_data):
         """Computes the spectral width error from the quadratic power fit errors
         at each range
 
@@ -369,16 +362,15 @@ class Determinations(object):
 
         """
 
-        w_s_conversion = C/(4*np.pi)/(raw_data['tfreq'] * 1000.0) *4.* np.sqrt(np.log(2))
+        w_s_conversion = C / (4 * np.pi)/(raw_data['tfreq'] * 1000.0) * 4.0 * np.sqrt(np.log(2))  # REVIEW # - what does 4, 1000 and 2 mean?
 
-        w_s_calculation = lambda x,y: np.sqrt(x)/2./np.sqrt(np.fabs(y)) * w_s_conversion
+        w_s_calculation = lambda x,y: np.sqrt(x) / 2.0 / np.sqrt(np.fabs(y)) * w_s_conversion  # REVIEW # - what does 2 mean?
 
         w_s_err = [w_s_calculation(range_obj.quadratic_pwr_fit_err.sigma_2_b,range_obj.quadratic_pwr_fit.b) for range_obj in range_list]
 
         return np.array(w_s_err)
 
-
-    def set_sdev_l(self,range_list):
+    def set_sdev_l(self, range_list):
         """Sets the chi_2 value of the linear power fit for each range
 
         :param range_list: a list of Range objects after fitting
@@ -391,7 +383,7 @@ class Determinations(object):
         return np.array(s_sdev_l)
 
 
-    def set_sdev_s(self,range_list):
+    def set_sdev_s(self, range_list):
         """Sets the chi_2 value of the quadratic power fit for each range
 
         :param range_list: a list of Range objects after fitting
@@ -404,7 +396,7 @@ class Determinations(object):
         return np.array(s_sdev_s)
 
 
-    def set_sdev_phi(self,range_list):
+    def set_sdev_phi(self, range_list):
         """Sets the chi_2 value of the ACF phase fit for each range
 
         :param range_list: a list of Range objects after fitting
@@ -415,7 +407,7 @@ class Determinations(object):
 
         return np.array(s_sdev_phi)
 
-    def set_gsct(self,vel_arr,w_l_arr):
+    def set_gsct(self, vel_arr, w_l_arr):
         """Computes whether scatter comes from ground or ionsphere for each
         range
 
@@ -427,11 +419,11 @@ class Determinations(object):
         v_abs = np.fabs(vel_arr)
         gsct_criteria = v_abs - (V_MAX - w_l_arr * (V_MAX/W_MAX))
 
-        gsct = [1 if g < 0.0 else 0 for g in gsct_criteria]
+        gsct = [1 if g < 0.0 else 0 for g in gsct_criteria]  # REVIEW # - what does 1 and 0 mean?
 
         return np.array(gsct)
 
-    def find_elevation(self,range_list,raw_data,hdw_info):
+    def find_elevation(self, range_list, raw_data, hdw_info):
         """Computes elevation angle for each range
 
         Computes fitted elevation angle, unfitted elevation angle, and
@@ -450,13 +442,13 @@ class Determinations(object):
         y = hdw_info['interoffy']
         z = hdw_info['interoffz']
 
-        antenna_sep = np.sqrt(x*x + y*y + z*z)
+        antenna_sep = np.sqrt(x * x + y * y + z * z)
 
-        elev_corr = hdw_info['phasesign'] * np.arcsin(z/antenna_sep)
+        elev_corr = hdw_info['phasesign'] * np.arcsin(z / antenna_sep)
 
         elevations = {}
 
-        if y > 0.0:
+        if y > 0.0: # REVIEW # - what does 0 mean?
             phi_sign = 1
         else:
             phi_sign = -1

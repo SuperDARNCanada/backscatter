@@ -1,7 +1,8 @@
-import os
+import os  # REVIEW License
 import ConfigParser as cp
 
 
+# REVIEW Documentation on the function
 def parse_hdw_files(hdw_files_path):
 
     hdw_info = {}
@@ -12,7 +13,7 @@ def parse_hdw_files(hdw_files_path):
             loop_ran = True
 
             if "hdw.dat" in filename:
-                with open(os.path.join(hdw_files_path,filename),'r') as f:
+                with open(os.path.join(hdw_files_path, filename), 'r') as f:
                     backwards_lines = reversed(f.readlines())
 
                     for line in backwards_lines:
@@ -48,11 +49,10 @@ def parse_hdw_files(hdw_files_path):
                             hdw_info[hdw_dict["stid"]] = hdw_dict
                             break
     except OSError as e:
-        error_msg = "No directory {0} found when locating hdw files!".format(hdw_files_path)      
+        error_msg = "No directory {0} found when locating hdw files!".format(hdw_files_path)
         raise ImportError(error_msg)
 
-
-    if loop_ran == False or len(hdw_info) == 0:
+    if loop_ran is False or len(hdw_info) == 0:
         error_msg = "No hardware files found at {0}".format(hdw_files_path)
         raise ImportError(error_msg)
 
@@ -62,10 +62,10 @@ def parse_hdw_files(hdw_files_path):
 def parse_config_file():
     config = cp.ConfigParser()
 
-    valid_sections = ["core","fitacf"]
+    valid_sections = ["core", "fitacf"]
     for loc in os.curdir, os.path.expanduser("~"), "/etc/backscatter":
-        
-        file_path = os.path.join(loc,"backscatter.ini")
+
+        file_path = os.path.join(loc, "backscatter.ini")
         config.read(file_path)
 
         if config.sections():
