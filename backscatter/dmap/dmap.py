@@ -445,19 +445,19 @@ class RawDmapRead(object):
             size = self.read_data('i')
             # print(code,size,end_byte)  # REVIEW #33 could remove this line
             if size <= 0:
-                message = """INITIAL INTEGRITY: Initial integrity check shows size <= 0.
-                 Data is likely corrupted"""
+                message = "INITIAL INTEGRITY: Initial integrity check invalid size: {}. "\
+                 "Data is likely corrupted".format(size)
                 raise DmapDataError(message)
             elif size > end_byte:
-                message = """INITIAL INTEGRITY: Initial integrity check shows
-                total sizes mismatch buffer size. Data is likely corrupted"""
+                message = "INITIAL INTEGRITY: Initial integrity check invalid size: {}. "\
+                        "Data is likely corrupted".format(size)
                 raise DmapDataError(message)
 
             size_total = size_total + size
 
             if size_total > end_byte:
-                message = """INITIAL INTEGRITY: Initial integrity check shows record size mismatch.
-                 Data is likely corrupted"""
+                message = "INITIAL INTEGRITY: Initial integrity check invalid total size {} > "\
+                "buffer size {}. Data is likely corrupted".format(size_total, end_byte)
                 raise DmapDataError(message)
 
             self.cursor = self.cursor + size - 2 * self.get_num_bytes('i')
@@ -465,8 +465,8 @@ class RawDmapRead(object):
         # print (end_byte,size_total)  # REVIEW #33 could remove this line
         if size_total != end_byte:
             # print(size_total,end_byte)  # REVIEW #33 could remove this line
-            message = """INITIAL INTEGRITY: Initial integrity check shows total size < buffer size.
-             Data is likely corrupted"""
+            message = "INITIAL INTEGRITY: Initial integrity check invalid total size {}" \
+                    " Data is likely corrupted".format(size_total)
             raise DmapDataError(message)
 
         self.cursor = 0
@@ -558,7 +558,8 @@ class RawDmapRead(object):
         # print("datatype",data_type) #REVIEW #33
 
         if data_type not in DMAP_DATA_KEYS:
-            message = "PARSE_SCALER: Data type is corrupted. Record is likely corrupted"
+            message = "PARSE_SCALER: Data type: {} is not correct."\
+                    " Record is likely corrupted".format(data_type)
             raise DmapDataError(message)
 
         if LOGGING:
@@ -590,7 +591,8 @@ class RawDmapRead(object):
         # print("datatype",data_type) #REVIEW #33
 
         if data_type not in DMAP_DATA_KEYS:
-            message = "PARSE_ARRAY: Data type is corrupted. Record is likely corrupted"
+            message = "PARSE_SCALER: Data type: {} is not correct."\
+                    " Record is likely corrupted".format(data_type)
             raise DmapDataError(message)
 
         if LOGGING:
@@ -602,12 +604,11 @@ class RawDmapRead(object):
         array_dimension = self.read_data('i')
 
         if array_dimension > record_size:
-            message = """PARSE_ARRAY: Parsed # of array dimensions are larger than
-             record size. Record is likely corrupted"""
+            message = "PARSE_ARRAY: Parsed # of array dimensions: {} are larger than"\
+                    " record size: {}. Record is likely corrupted".format{array_dimension, record_size}
             raise DmapDataError(message)
         elif array_dimension <= 0:
-            message = """PARSE ARRAY: Parsed # of array dimensions are zero or
-             negative. Record is likely corrupted"""
+            message = "PARSE_ARRAY: Parsed # of array dimensions: {}.".format{array_dimension}
             raise DmapDataError(message)
 
         # print("array_dimension",array_dimension) # REVIEW #33
@@ -617,13 +618,13 @@ class RawDmapRead(object):
             message = "PARSE ARRAY: Array dimensions could not be parsed."
             raise DmapDataError(message)
         elif sum(x <= 0 for x in dimensions) > 0:
-            message = """PARSE ARRAY: Array dimension is zero or negative.
-             Record is likely corrupted"""
+            message = "PARSE ARRAY: Array dimension is {}. "\
+                    "Record is likely corrupted".format(sum(x <= 0 for x in dimensions))
             raise DmapDataError(message)
 
         for x in dimensions:
             if x >= record_size:
-                message = "PARSE_ARRAY: Array dimension exceeds record size."
+                message = "PARSE_ARRAY: Array dimension: {} >= record size: {}.".format(x, record_size)
 
         if LOGGING:
             with open("logfile.txt", 'a') as f:
@@ -635,10 +636,12 @@ class RawDmapRead(object):
             total_elements = total_elements * dim
 
         if total_elements > record_size:
-            message = """PARSE_ARRAY: Total array elements > record size."""
+            message = "PARSE_ARRAY: Total array elements {} >"\
+                    " record size {}.".format(total_elements, record_size)
             raise DmapDataError(message)
         elif total_elements * self.get_num_bytes(data_type_fmt) > record_size:
-            message = "PARSE ARRAY: Array size exceeds record size. Data is likely corrupted"
+            message = "PARSE ARRAY: Array size {} exceeds record size {}."\
+                    " Data is likely corrupted".format(total_elements * self.get_num_bytes(data_type_fmt), record_size)
             raise DmapDataError(message)
 
         if LOGGING:
@@ -695,13 +698,17 @@ class RawDmapRead(object):
                 f.write("READ DATA: cursor "
                         "{0} bytelen {1}\n".format(self.cursor, len(self.dmap_bytearr)))  # REVIEW #22 can use self.end_byte here if you make it a member. (also 3 more times this function)
 
-        if self.cursor >= len(self.dmap_bytearr):
-            message = "READ DATA: Cursor extends out of buffer. Data is likely corrupted"
+        end_bytes = len(self.dmap_bytearr)
+        if self.cursor >= end_bytes:
+            message = "READ DATA: Cursor {} extends out of buffer {}."\
+                    " Data is likely corrupted".format(self.cursor, end_bytes)
             raise DmapDataError(message)
 
-        if (len(self.dmap_bytearr) - self.cursor) < self.get_num_bytes(data_type_fmt):
-            message = "READ DATA: Byte offsets into buffer are not properly aligned. "
-            "Data is likely corrupted"
+        byte_offset = end_bytes - self.cursor)
+        num_fmt_bytes = self.get_num_bytes(data_type_fmt)
+        if ( byte_offset < num_fmt_bytes:
+            message = "READ DATA: Byte offsets {} into buffer are not properly aligned with byte format size {}. "
+            "Data is likely corrupted".format(byte_offset, num_fmt_bytes)
             raise DmapDataError(message)
 
         if data_type_fmt is DMAP:
@@ -747,12 +754,12 @@ class RawDmapRead(object):
         """
 
         # print(dimensions,total_elements) #REVIEW #33
-        start = self.cursor  # REVIEW Unused variable
-        end = self.cursor + total_elements*self.get_num_bytes(data_type_fmt)
+        start = self.cursor  # REVIEW #42 Unused variable start
+        end = self.cursor + total_elements * self.get_num_bytes(data_type_fmt)
 
-        if end > len(self.dmap_bytearr):
-            message = "READ_NUMERICAL_ARRAY: Array end point extends "
-            "past length of buffer"
+        if end > len(self.dmap_bytearr): # REVIEW #22 can use self.end_byte here if you make it a member. (also 3 more times this function)
+            message = "READ_NUMERICAL_ARRAY: Array end point {} extends "\
+            "past length of buffer {}".format(end, len(self.dmap_bytearr))
             raise DmapDataError(message)
 
         buf = self.dmap_bytearr[self.cursor:self.cursor +
@@ -1487,7 +1494,7 @@ if __name__ == '__main__':
     # wr = RawDmapWrite(records,"testing.acf")
     # dicts_to_rawacf(records,'testing.acf')
     # records = parse_dmap_format_from_file('testing.acf')
-    # print(records[0])
+    # prit(records[0])
 
     # gc.collect()
     # records = parse_dmap_format_from_file('20131004.0401.00.rkn.fitacf')
