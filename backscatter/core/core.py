@@ -22,7 +22,8 @@ def parse_hdw_files(hdw_files_path):
                         else:
                             fields = line.split()
                             if len(fields) != 19:
-                                raise ValueError("Invalid number of hdw.dat fields!")
+                                raise ValueError(" {} is an invalid number "
+                                                 "of hdw.dat fields!".format(len(fields)))
 
                             hdw_dict = {}
 
