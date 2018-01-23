@@ -6,7 +6,7 @@ import numpy as np
 import sys
 
 
-DMAP = 0
+DMAP = 0 # REVIEW #1 #29 what are these and what do they mean, who are you?
 CHAR = 1
 SHORT = 2
 INT = 3
@@ -477,7 +477,7 @@ class RawDmapRead(object):
         """
         bytes_already_read = self.cursor
 
-        code = self.read_data('i')
+        code = self.read_data('i')  # REVIEW #1 are the first two integers in a dmap record the code and the size?
         size = self.read_data('i')
         # print(code,size,self.cursor,len(self.dmap_bytearr))  # REVIEW #33 could remove this line
 
@@ -486,30 +486,38 @@ class RawDmapRead(object):
                 f.write("PARSE RECORD: code {0} size {1}\n".format(code, size))
 
         # adding 8 bytes because code+size are part of the record.
-        if size > (len(self.dmap_bytearr) - self.cursor + 2 * self.get_num_bytes('i')):
-            message = "PARSE RECORD: Integrity check shows record size bigger than remaining buffer. Data is likely corrupted"  # REVIEW #31 Try to get this line under 100 chars
+        remaining_buffer_size = (len(self.dmap_bytearr) - self.cursor + 2 * self.get_num_bytes('i'))
+        if size > remaining_buffer_size:  # REVIEW #22 can use self.end_byte here if you make it a member. Every time you use len(self.dmap_bytearr)
+            message = "PARSE RECORD: Integrity check shows record size: {} is bigger " \
+                      "than remaining buffer size: {}. " \
+                      "Data is likely corrupted".format(size, remaining_buffer_size)
             raise DmapDataError(message)
         elif size <= 0:
-            message = "PARSE RECORD: Integrity check shows record size <= 0. Data is likely corrupted"  # REVIEW #31 Try to get this line under 100 chars
+            message = "PARSE RECORD: Integrity check shows invalid record size: {}. " \
+                      "Data is likely corrupted".format(size)
             raise DmapDataError(message)
 
         num_scalers = self.read_data('i')
         num_arrays = self.read_data('i')
 
-        # print("num scalers",num_scalers,"num arrays",num_arrays)
+        # print("num scalers",num_scalers,"num arrays",num_arrays)  # Review # 33
 
         if LOGGING:
             with open("logfile.txt", 'a') as f:
-                f.write("PARSE RECORD: num_scalers {0} num_arrays {1}\n".format(num_scalers, num_arrays))
+                f.write("PARSE RECORD: num_scalers {0} num_arrays {1}\n".format(num_scalers,  # REVIEW #0 Not sure you need the numbers within the braces... can you explain why you use them?
+                                                                                num_arrays))
 
         if num_scalers <= 0:
-            message = "PARSE RECORD: Number of scalers is 0 or negative."
+            message = "PARSE RECORD: Number of scalers is inavlid: {}.".format(num_scalers)
             raise DmapDataError(message)
         elif num_arrays <= 0:
-            message = "PARSE RECORD: Number of arrays is 0 or negative."
+            message = "PARSE RECORD: Number of arrays is invalid: {}.".format(num_arrays)
             raise DmapDataError(message)
         elif (num_scalers + num_arrays) > size:
-            message = "PARSE RECORD: Invalid number of record elements. Array or scaler field is likely corrupted."  # REVIEW #31 Try to get this line under 100 chars
+            message = "PARSE RECORD: Invalid number of record elements: {} + {} = {} > size {}. " \
+                      "Array or scaler field is likely corrupted.".format(num_scalers, num_arrays,
+                                                                          num_scalers+num_arrays,
+                                                                          size)
             raise DmapDataError(message)
 
         dm_rec = RawDmapRecord()
@@ -518,14 +526,14 @@ class RawDmapRead(object):
             with open("logfile.txt", 'a') as f:
                 f.write("PARSE RECORD: processing scalers\n")
 
-        scalers = [self.parse_scaler() for sc in range(0, num_scalers)]
+        scalers = [self.parse_scaler() for sc in range(0, num_scalers)]  # REVIEW #42 (unused variable) -> sc is unused, but we're not sure how to do this list comp without it, maybe you have an idea?
         dm_rec.set_scalers(scalers)
 
         if LOGGING:
             with open("logfile.txt", 'a') as f:
                 f.write("PARSE RECORD: processing arrays\n")
 
-        arrays = [self.parse_array(size) for ar in range(0, num_arrays)]
+        arrays = [self.parse_array(size) for ar in range(0, num_arrays)]  # REVIEW #42 same as above
         dm_rec.set_arrays(arrays)
 
         if (self.cursor - bytes_already_read) != size:
@@ -677,7 +685,7 @@ class RawDmapRead(object):
         Given a format identifier, a number of bytes are read from the buffer
         and turned into the correct data type
 
-        :param data_type_fmt: a string format identifier for the DMAP data type
+        :param data_type_fmt: a string format identifier for the DMAP data type # REVIEW #1 what are the possible options for this input?
         :returns: parsed data
 
         """
@@ -703,7 +711,7 @@ class RawDmapRead(object):
             # print (data,data_type) #REVIEW #33
             self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
         elif data_type_fmt is not 's':  # REVIEW #3 - weird... difficult to follow, so if we passed in an 'i' this is the branch that would be executed? pls document with a comment
-            data = struct.unpack_from(data_type_fmt, buffer(self.dmap_bytearr), self.cursor)
+            data = struct.unpack_from(data_type_fmt, buffer(self.dmap_bytearr), self.cursor) # REVIEW #39 -> python 3 buffer is replaced by memoryview, you can use memoryview in 2.7 as well
             # print(data,data_type) #REVIEW #33
             self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
         else:
@@ -717,7 +725,7 @@ class RawDmapRead(object):
 
             char_count = '{0}s'.format(byte_counter)
             data = struct.unpack_from(char_count, buffer(self.dmap_bytearr), self.cursor)
-            self.cursor = self.cursor + byte_counter + 1
+            self.cursor = self.cursor + byte_counter + 1  # REVIEW #3 Maybe a comment here to indicate why you need to +1 to the cursor (Is it for the null byte at end of string?)
 
         if data_type_fmt is 'c':
             return data
@@ -770,7 +778,7 @@ class RawDmapRead(object):
     def get_num_bytes(self, data_type_fmt):
         """Returns the number of bytes associated with each type
 
-        :param data_type_fmt: a string format identifier for the DMAP data type
+        :param data_type_fmt: a string format identifier for the DMAP data type  # REVIEW #1 can you comment here about what the possible formats are? We're guessing char, byte, int, ... float, double but not sure
         :returns: size in bytes of the data type
 
         """
@@ -796,7 +804,7 @@ class RawDmapRead(object):
 
         """
         return {
-            CHAR:   'c',
+            CHAR:   'c',  # REVIEW #1 AHA! Here they are! but still the description should be in a docstring so it shows up in documentation plz.
             SHORT:  'h',
             INT:    'i',
             FLOAT:  'f',
@@ -807,7 +815,7 @@ class RawDmapRead(object):
             USHORT: 'H',
             UINT:   'I',
             ULONG:  'Q',
-        }.get(data_type, DMAP)
+        }.get(data_type, DMAP) # REVIEW #1 we wonder why default return value is DMAP, and what that means?
 
     def get_records(self):
         """Returns the list of parsed DMAP records
