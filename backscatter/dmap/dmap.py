@@ -19,7 +19,7 @@ USHORT = 17
 UINT = 18
 ULONG = 19
 
-DMAP_DATA_KEYS = [0, 1, 2, 3, 4, 8, 9, 10, 16, 17, 18, 19]
+DMAP_DATA_KEYS = [0, 1, 2, 3, 4, 8, 9, 10, 16, 17, 18, 19] # REVIEW #1 #29 what are these and what do they mean, where am I?
 
 LOGGING = False
 
@@ -550,7 +550,7 @@ class RawDmapRead(object):
 
         """
 
-        mode = 6
+        mode = 6  # REVIEW #1 what are the different modes? would an enum be better suited to mode?
         name = self.read_data('s')
         # print("name",name) # REVIEW #33
 
@@ -605,27 +605,28 @@ class RawDmapRead(object):
 
         if array_dimension > record_size:
             message = "PARSE_ARRAY: Parsed # of array dimensions: {} are larger than"\
-                    " record size: {}. Record is likely corrupted".format{array_dimension, record_size}
+                    " record size: {}. Record is likely corrupted".format(array_dimension,
+                                                                          record_size)
             raise DmapDataError(message)
         elif array_dimension <= 0:
-            message = "PARSE_ARRAY: Parsed # of array dimensions: {}.".format{array_dimension}
+            message = "PARSE_ARRAY: Parsed # of array dimensions: {}.".format(array_dimension)
             raise DmapDataError(message)
 
         # print("array_dimension",array_dimension) # REVIEW #33
-        dimensions = [self.read_data('i') for i in range(0, array_dimension)]
+        dimensions = [self.read_data('i') for i in range(0, array_dimension)]  # REVIEW #42 - but Marina looked at alternatives and apparently map is usually used (but much slower) so it's probably OK in this case.
         # print("dimensions",dimensions) #REVIEW #33
         if not dimensions:
             message = "PARSE ARRAY: Array dimensions could not be parsed."
             raise DmapDataError(message)
-        elif sum(x <= 0 for x in dimensions) > 0:
-            message = "PARSE ARRAY: Array dimension is {}. "\
-                    "Record is likely corrupted".format(sum(x <= 0 for x in dimensions))
+        elif sum(x <= 0 for x in dimensions) > 0:  # REVIEW #24 WE FOUND A FASTER WAY! https://stackoverflow.com/questions/16505456/how-exactly-does-the-python-any-function-work
+            message = "PARSE ARRAY: One or more of array's dims is <= 0. Record likely corrupted"
             raise DmapDataError(message)
 
-        for x in dimensions:
+        for x in dimensions:  # REVIEW #1 We're not sure what dimensions is vs what record_size is, a comment here would be good
             if x >= record_size:
-                message = "PARSE_ARRAY: Array dimension: {} >= record size: {}.".format(x, record_size)
-
+                message = "PARSE_ARRAY: Array dimension: " \
+                          "{} >= record size: {}.".format(x, record_size)
+# REVIEW #0 Are you missing an exception 'raise' here?
         if LOGGING:
             with open("logfile.txt", 'a') as f:
                 f.write("PARSE ARRAY: dimensions {0}\n".format(dimensions))
@@ -640,8 +641,8 @@ class RawDmapRead(object):
                     " record size {}.".format(total_elements, record_size)
             raise DmapDataError(message)
         elif total_elements * self.get_num_bytes(data_type_fmt) > record_size:
-            message = "PARSE ARRAY: Array size {} exceeds record size {}."\
-                    " Data is likely corrupted".format(total_elements * self.get_num_bytes(data_type_fmt), record_size)
+            message = "PARSE ARRAY: Array size {} exceeds record size {}.Data is likely corrupted".\
+                format(total_elements * self.get_num_bytes(data_type_fmt), record_size)
             raise DmapDataError(message)
 
         if LOGGING:
@@ -670,7 +671,7 @@ class RawDmapRead(object):
         :returns: n dimensional list of data parsed from buffer
 
         """
-        dim_data = []
+        dim_data = []  # REVIEW #33 I think you don't need this line since dim_data is always set in the if/else
         dimension = dim.pop()
 
         if not dim:
@@ -704,11 +705,11 @@ class RawDmapRead(object):
                     " Data is likely corrupted".format(self.cursor, end_bytes)
             raise DmapDataError(message)
 
-        byte_offset = end_bytes - self.cursor)
+        byte_offset = (end_bytes - self.cursor)
         num_fmt_bytes = self.get_num_bytes(data_type_fmt)
-        if ( byte_offset < num_fmt_bytes:
-            message = "READ DATA: Byte offsets {} into buffer are not properly aligned with byte format size {}. "
-            "Data is likely corrupted".format(byte_offset, num_fmt_bytes)
+        if byte_offset < num_fmt_bytes:
+            message = "READ DATA: Byte offsets {} into buffer are not properly aligned with byte " \
+                      "format size {}. Data is likely corrupted".format(byte_offset, num_fmt_bytes)
             raise DmapDataError(message)
 
         if data_type_fmt is DMAP:
@@ -744,7 +745,7 @@ class RawDmapRead(object):
 
         Instead of reading array elements one by one, this method uses numpy to read an
         entire section of the buffer into a numpy array and then reshapes it to the correct
-        dimensions. This method is prefered due to massive performance increase
+        dimensions. This method is preferred due to massive performance increase
 
         :param data_type_fmt: a string format identifier for the DMAP data type
         :param dimensions: a list of each array dimension
@@ -758,23 +759,23 @@ class RawDmapRead(object):
         end = self.cursor + total_elements * self.get_num_bytes(data_type_fmt)
 
         if end > len(self.dmap_bytearr): # REVIEW #22 can use self.end_byte here if you make it a member. (also 3 more times this function)
-            message = "READ_NUMERICAL_ARRAY: Array end point {} extends "\
-            "past length of buffer {}".format(end, len(self.dmap_bytearr))
+            message = "READ_NUMERICAL_ARRAY: Array end point {} extends " \
+                      "past length of buffer {}".format(end, len(self.dmap_bytearr))
             raise DmapDataError(message)
 
         buf = self.dmap_bytearr[self.cursor:self.cursor +
-                                total_elements*self.get_num_bytes(data_type_fmt)]
+                                total_elements*self.get_num_bytes(data_type_fmt)]  # REVIEW #33 why not use start and end here?
 
         try:
             array = np.frombuffer(buf, dtype=data_type_fmt)
         except ValueError as v:
-            message = "READ_NUMERICAL_ARRAY: Array buffer in not multiple of data size. "
-            "Likely due to corrupted array parameters in record"
+            message = "READ_NUMERICAL_ARRAY: Array buffer is not a multiple of the data size. "
+            "Likely due to corrupted array parameters in record"  # REVIEW #0 Are you missing a raise exception here?
 
         if len(dimensions) > 1:
             array = array.reshape(tuple(dimensions[::-1]))  # reshape expects a tuple and dimensions reversed from what is parsed
 
-        self.cursor = self.cursor + total_elements * self.get_num_bytes(data_type_fmt)
+        self.cursor = self.cursor + total_elements * self.get_num_bytes(data_type_fmt)  # REVIEW #33 why not use end here?
 
         if LOGGING:
             with open("logfile.txt", 'a') as f:
@@ -842,7 +843,7 @@ class RawDmapWrite(object):
     if you want to write a number as a char instead of an int for example
 
     """
-    def __init__(self, data_dicts, file_path, ud_types={}):
+    def __init__(self, data_dicts, file_path, ud_types={}):  # REVIEW #15 - Apparently the default value of ud_types is mutable, meaning if you change it it will affect all subsequent calls. So we htink you should set it to 'None' and then within function, check for None type and do something accordingly
         super(RawDmapWrite, self).__init__()
         self.data_dict = data_dicts
         self.records = []
