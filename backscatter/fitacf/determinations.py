@@ -479,7 +479,7 @@ class Determinations(object):
         # else:
         #   elevation = np.arcsin(np.sqrt(theta))
 
-        elev_calculation = lambda x: -elev_corr if (t < 0.0 or np.fabs(x) > 1.0) else np.arcsin(np.sqrt(x))  # REVIEW # - do not use lambda expression #0 - what is t?
+        elev_calculation = lambda x: -elev_corr if (t < 0.0 or np.fabs(x) > 1.0) else np.arcsin(np.sqrt(x))  # REVIEW # - do not use lambda expression #42 - what is t?
         elevation = [elev_calculation(t) for t in theta]
 
         elevations['high'] = [180 / np.pi * (elev + elev_corr) for elev in elevation]  # REVIEW #29
@@ -492,7 +492,7 @@ class Determinations(object):
         errors = [range_obj.elev_fit.sigma_2_a for range_obj in range_list]
         elevations['low'] = [elev_low_calculation(err, dfdy) for err, dfdy in zip(errors, df_by_dy)]
 
-        #Experiment to compare fitted and measured elevation
+        # Experiment to compare fitted and measured elevation
         xcfd = raw_data['xcfd']
         real = [xcfd[range_obj.range_idx][0][0] for range_obj in range_list]
         imag = [xcfd[range_obj.range_idx][0][1] for range_obj in range_list]
@@ -519,7 +519,7 @@ class Determinations(object):
         #   elevation = np.arcsin(np.sqrt(theta))
         # }
 
-        elev_calculation = lambda x: -elev_corr if (t < 0.0 or np.fabs(x) > 1.0) else np.arcsin(np.sqrt(x))  # REVIEW # - Lambda expression
+        elev_calculation = lambda x: -elev_corr if (t < 0.0 or np.fabs(x) > 1.0) else np.arcsin(np.sqrt(x))  # REVIEW # - Lambda expression #42 t is not defined
         elevation = [elev_calculation(t) for t in theta]
 
         elevations['normal'] = [180 / np.pi * (elev + elev_corr) for elev in elevation]
@@ -533,7 +533,7 @@ class Determinations(object):
         :returns: an array of unfitted XCF phases offsets
 
         """
-        #phi0 = [range_obj.elev_fit.a for range_obj in range_list]
+        # phi0 = [range_obj.elev_fit.a for range_obj in range_list] # REVIEW #33
         xcfd = [raw_data['xcfd'][range_obj.range_idx] for range_obj in range_list]
         phi0 = [np.arctan2(xcf[0][1], xcf[0][0]) for xcf in xcfd]
 
