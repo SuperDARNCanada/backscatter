@@ -45,9 +45,9 @@ def test_write_integrity(parsed_record, dict_to_test):
     for k, v in dict_to_test.iteritems():
         if isinstance(parsed_record[k], np.ndarray):
         # if isinstance(parsed_record[k][0],np.float32):  # REVIEW #33
-        # 	print(parsed_record[k],v)
-        # 	if np.allclose(parsed_record[k],v,atol=1e-02):
-        # 		return k
+        #     print(parsed_record[k],v)
+        #     if np.allclose(parsed_record[k],v,atol=1e-02):
+        #         return k
         # else:
             if compare_arrays(parsed_record[k], v):
                 return k
@@ -70,7 +70,8 @@ class TestDmap(unittest.TestCase):
     def test_incorrect_file(self):
         """tests whether the file is empty or missing"""
         self.assertRaises(IOError, dmap.RawDmapRead, '/tmp/somefile.rawacf')
-        self.assertRaises(dmap.EmptyFileError, dmap.RawDmapRead, 'testfiles/emptytestfile')
+        self.assertRaises(dmap.EmptyFileError, dmap.RawDmapRead,
+                          'testfiles/emptytestfile')
 
     def test_open_rawacf(self):
         """tests opening a rawacf file using RawDmapRead"""
@@ -95,229 +96,236 @@ class TestDmap(unittest.TestCase):
         except dmap.DmapDataError as e:
             self.fail(str(e))
 
-		# will fail if there are no records
-		self.assertTrue(dm.get_records())
+        # will fail if there are no records
+        self.assertTrue(dm.get_records())
 
-	def test_open_map(self):
-		"""tests opening a map file using RawDmapRead"""
-		file_path = "testfiles/20110214.map"
+    def test_open_map(self):
+        """tests opening a map file using RawDmapRead"""
+        file_path = "testfiles/20110214.map"
 
-		# fail if any changes cause an exception to be thrown
-		try:
-			dm = dmap.RawDmapRead(file_path)
-		except dmap.DmapDataError as e:
-			self.fail(str(e))
+        # fail if any changes cause an exception to be thrown
+        try:
+            dm = dmap.RawDmapRead(file_path)
+        except dmap.DmapDataError as e:
+            self.fail(str(e))
 
-		# will fail if there are no records
-		self.assertTrue(dm.get_records())
+        # will fail if there are no records
+        self.assertTrue(dm.get_records())
 
-	def test_open_iqdat(self):
-		"""tests opening a map file using RawDmapRead"""
-		file_path = "testfiles/20160316.1945.01.rkn.iqdat"
+    def test_open_iqdat(self):
+        """tests opening a map file using RawDmapRead"""
+        file_path = "testfiles/20160316.1945.01.rkn.iqdat"
 
-		# fail if any changes cause an exception to be thrown
-		try:
-			dm = dmap.RawDmapRead(file_path)
-		except dmap.DmapDataError as e:
-			self.fail(str(e))
+        # fail if any changes cause an exception to be thrown
+        try:
+            dm = dmap.RawDmapRead(file_path)
+        except dmap.DmapDataError as e:
+            self.fail(str(e))
 
-		# will fail if there are no records
-		self.assertTrue(dm.get_records())
+        # will fail if there are no records
+        self.assertTrue(dm.get_records())
 
-	def test_parse_dmap_from_file_function(self):
-		"""tests the overarching function used to open dmap based files
-		and returns a list of parsed items"""
-		file_path = "testfiles/20110214.map"
+    def test_parse_dmap_from_file_function(self):
+        """tests the overarching function used to open dmap based files
+        and returns a list of parsed items"""
+        file_path = "testfiles/20110214.map"
 
-		# fail if any changes cause an exception to be thrown
-		try:
-			records = dmap.parse_dmap_format_from_file(file_path)
-		except dmap.DmapDataError as e:
-			self.fail(str(e))
+        # fail if any changes cause an exception to be thrown
+        try:
+            records = dmap.parse_dmap_format_from_file(file_path)
+        except dmap.DmapDataError as e:
+            self.fail(str(e))
 
-		self.assertIsInstance(records, list)
-		self.assertIsInstance(records[0], dict)
+        self.assertIsInstance(records, list)
+        self.assertIsInstance(records[0], dict)
 
-	def test_writing_to_rawacf(self):
-		"""tests using RawDmapWrite to write to rawacf"""
-		file_path = "test_rawacf.rawacf"
+    def test_writing_to_rawacf(self):
+        """tests using RawDmapWrite to write to rawacf"""
+        file_path = "test_rawacf.rawacf"
 
-		dict_list = [test_data.rawacf_missing_field]
+        dict_list = [test_data.rawacf_missing_field]
 
-		self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
-                    dict_list, file_path, file_type='rawacf')
+        self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
+                          dict_list, file_path, file_type='rawacf')
 
-		dict_list = [test_data.rawacf_extra_field]
+        dict_list = [test_data.rawacf_extra_field]
 
-		self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
-                    dict_list, file_path, file_type='rawacf')
+        self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
+                          dict_list, file_path, file_type='rawacf')
 
-		dict_list = [test_data.good_rawacf]
+        dict_list = [test_data.good_rawacf]
 
-		try:
-			dmap.dicts_to_file(dict_list, file_path, file_type='rawacf')
-		except dmap.DmapDataError as e:
-			self.fail(str(e))
+        try:
+            dmap.dicts_to_file(dict_list, file_path, file_type='rawacf')
+        except dmap.DmapDataError as e:
+            self.fail(str(e))
 
-		try:
-			rec = dmap.parse_dmap_format_from_file(file_path)
-		except dmap.DmapDataError as e:
-			self.fail(str(e))
+        try:
+            rec = dmap.parse_dmap_format_from_file(file_path)
+        except dmap.DmapDataError as e:
+            self.fail(str(e))
 
-		parsed_record = rec[0]
-		k = test_write_integrity(parsed_record, test_data.good_rawacf)
+        parsed_record = rec[0]
+        k = test_write_integrity(parsed_record, test_data.good_rawacf)
 
-		if k is not None:
-			self.fail("Parsed field {0} data does not match data to be written out".format(k))
+        if k is not None:
+            self.fail("Parsed field {0} data does not match data"
+                      " to be written out".format(k))
 
-		os.remove(file_path)
+        os.remove(file_path)
 
-	def test_writing_to_fitacf(self):
-		"""tests using RawDmapWrite to write to fitacf"""
-		file_path = "test_fitacf.fitacf"
+    def test_writing_to_fitacf(self):
+        """tests using RawDmapWrite to write to fitacf"""
+        file_path = "test_fitacf.fitacf"
 
-		dict_list = [test_data.fitacf_missing_field]
+        dict_list = [test_data.fitacf_missing_field]
 
-		self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
-                    dict_list, file_path, file_type='fitacf')
+        self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
+                          dict_list, file_path, file_type='fitacf')
 
-		dict_list = [test_data.fitacf_extra_field]
+        dict_list = [test_data.fitacf_extra_field]
 
-		self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
-                    dict_list, file_path, file_type='fitacf')
+        self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
+                          dict_list, file_path, file_type='fitacf')
 
-		dict_list = [test_data.good_fitacf]
+        dict_list = [test_data.good_fitacf]
 
-		try:
-			dmap.dicts_to_file(dict_list, file_path, file_type='fitacf')
-		except dmap.DmapDataError as e:
-			self.fail(str(e))
+        try:
+            dmap.dicts_to_file(dict_list, file_path, file_type='fitacf')
+        except dmap.DmapDataError as e:
+            self.fail(str(e))
 
-		try:
-			rec = dmap.parse_dmap_format_from_file(file_path)
-		except dmap.DmapDataError as e:
-			self.fail(str(e))
+        try:
+            rec = dmap.parse_dmap_format_from_file(file_path)
+        except dmap.DmapDataError as e:
+            self.fail(str(e))
 
-		parsed_record = rec[0]
+        parsed_record = rec[0]
 
-		k = test_write_integrity(parsed_record, test_data.good_fitacf)
+        k = test_write_integrity(parsed_record, test_data.good_fitacf)
 
-		if k is not None:
-			self.fail("Parsed field {0} data does not match data to be written out".format(k))
+        if k is not None:
+            self.fail("Parsed field {0} data does not match data"
+                      " to be written out".format(k))
 
-		os.remove(file_path)
+        os.remove(file_path)
 
-	def test_writing_to_iq(self):
-		"""tests using RawDmapWrite to write to iqdat"""
-		file_path = "test_iq.iqdat"
+    def test_writing_to_iq(self):
+        """tests using RawDmapWrite to write to iqdat"""
+        file_path = "test_iq.iqdat"
 
-		dict_list = [test_data.iq_missing_field]
+        dict_list = [test_data.iq_missing_field]
 
-		self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
-                    dict_list, file_path, file_type='iqdat')
+        self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
+                          dict_list, file_path, file_type='iqdat')
 
-		dict_list = [test_data.iq_extra_field]
+        dict_list = [test_data.iq_extra_field]
 
-		self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
-                    dict_list, file_path, file_type='iqdat')
+        self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
+                          dict_list, file_path, file_type='iqdat')
 
-		dict_list = [test_data.good_iq]
+        dict_list = [test_data.good_iq]
 
-		try:
-			dmap.dicts_to_file(dict_list, file_path, file_type='iqdat')
-		except dmap.DmapDataError as e:
-			self.fail(str(e))
+        try:
+            dmap.dicts_to_file(dict_list, file_path, file_type='iqdat')
+        except dmap.DmapDataError as e:
+            self.fail(str(e))
 
-		try:
-			rec = dmap.parse_dmap_format_from_file(file_path)
-		except dmap.DmapDataError as e:
-			self.fail(str(e))
+        try:
+            rec = dmap.parse_dmap_format_from_file(file_path)
+        except dmap.DmapDataError as e:
+            self.fail(str(e))
 
-		parsed_record = rec[0]
+        parsed_record = rec[0]
 
-		k = test_write_integrity(parsed_record, test_data.good_iq)
+        k = test_write_integrity(parsed_record, test_data.good_iq)
 
-		if k is not None:
-			self.fail("Parsed field {0} data does not match data to be written out".format(k))
+        if k is not None:
+            self.fail("Parsed field {0} data does not match data"
+                      " to be written out".format(k))
 
-		os.remove(file_path)
+        os.remove(file_path)
 
-	def test_writing_to_map(self):
-		"""tests using RawDmapWrite to write to map"""
-		file_path = "test_map.map"
+    def test_writing_to_map(self):
+        """tests using RawDmapWrite to write to map"""
+        file_path = "test_map.map"
 
-		dict_list = [test_data.map_missing_field]
+        dict_list = [test_data.map_missing_field]
 
-		self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
-                    dict_list, file_path, file_type='map')
+        self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
+                          dict_list, file_path, file_type='map')
 
-		dict_list = [test_data.map_extra_field]
+        dict_list = [test_data.map_extra_field]
 
-		self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
-                    dict_list, file_path, file_type='map')
+        self.assertRaises(dmap.DmapDataError, dmap.dicts_to_file,
+                          dict_list, file_path, file_type='map')
 
-		dict_list = [test_data.good_map]
+        dict_list = [test_data.good_map]
 
-		try:
-			dmap.dicts_to_file(dict_list, file_path, file_type='map')
-		except dmap.DmapDataError as e:
-			self.fail(str(e))
+        try:
+            dmap.dicts_to_file(dict_list, file_path, file_type='map')
+        except dmap.DmapDataError as e:
+            self.fail(str(e))
 
-		try:
-			rec = dmap.parse_dmap_format_from_file(file_path)
-		except dmap.DmapDataError as e:
-			self.fail(str(e))
+        try:
+            rec = dmap.parse_dmap_format_from_file(file_path)
+        except dmap.DmapDataError as e:
+            self.fail(str(e))
 
-		parsed_record = rec[0]
+        parsed_record = rec[0]
 
-		k = test_write_integrity(parsed_record, test_data.good_map)
+        k = test_write_integrity(parsed_record, test_data.good_map)
 
-		if k is not None:
-			self.fail("Parsed field {0} data does not match data to be written out".format(k))
+        if k is not None:
+            self.fail("Parsed field {0} data does not match data"
+                      " to be written out".format(k))
 
-		os.remove(file_path)
+        os.remove(file_path)
 
-	def test_dmap_read_through_randomization(self):
-		"""Randomly corrupts 5% of the data in a record and tries to parse.
-			Fails if an non Dmap exception is thrown as this means there is a
-			missing check against bad input. Increase the number of tests to
-			stress test."""
+    def test_dmap_read_through_randomization(self):
+        """Randomly corrupts 5% of the data in a record and tries to parse.
+            Fails if an non Dmap exception is thrown as this means there is a
+            missing check against bad input. Increase the number of tests to
+            stress test."""
 
-		num_tests = 100
+        num_tests = 100
 
-		file_path = "testfiles/20140630.C0.sas.fitacf"
+        file_path = "testfiles/20140630.C0.sas.fitacf"
 
-		dm = dmap.parse_dmap_format_from_file(file_path, raw_dmap=True)
+        dm = dmap.parse_dmap_format_from_file(file_path, raw_dmap=True)
 
-		dm.cursor = 0
-		dm.parse_record()
+        dm.cursor = 0
+        dm.parse_record()
 
-		dmap_length = dm.cursor
+        dmap_length = dm.cursor
 
-		dmap_to_randomize = dm.dmap_bytearr[0:dmap_length]
+        dmap_to_randomize = dm.dmap_bytearr[0:dmap_length]
 
-		seed = int(time.time())
-		random.seed(seed)
+        seed = int(time.time())
+        random.seed(seed)
 
-		for x in xrange(0, num_tests):
-			gc.collect()
-			randomizer = [os.urandom(1) if random.randint(0, 100) >= 95 else '\x00' for j in range(0, dmap_length)]
+        for x in xrange(0, num_tests):  # REVIEW xrange was renamed to range in python 3. You might be okay to just use range in this case? otherwise check for python version?
+            gc.collect()
+            randomizer = [os.urandom(1) if random.randint(0, 100) >= 95
+                          else '\x00' for j in range(0, dmap_length)]
 
-			corrupted_dmap = [chr(a ^ ord(b)) for a, b in zip(dmap_to_randomize, randomizer)]
+            corrupted_dmap = [chr(a ^ ord(b)) for a, b in
+                              zip(dmap_to_randomize, randomizer)]
 
-			try:
-				records = dmap.parse_dmap_format_from_stream(corrupted_dmap)
-				del(records)
-			except dmap.DmapDataError as e:
-				pass
-			except Exception as e:
-				logging.exception("New exception thrown by DMAP")
-				message = "Corruption not handled. Seed {0}. New exception thrown".format(seed)
-				self.fail(message)
+            try:
+                records = dmap.parse_dmap_format_from_stream(corrupted_dmap)
+                del(records)
+            except dmap.DmapDataError as e:
+                pass
+            except Exception as e:
+                logging.exception("New exception thrown by DMAP")
+                message = "Corruption not handled. Seed {0}."
+                " New exception thrown".format(seed)
+                self.fail(message)
 
-			del(randomizer)
-			del(corrupted_dmap)
+            del(randomizer)
+            del(corrupted_dmap)
 
 
 if __name__ == '__main__':
-	unittest.main()
+    unittest.main()
