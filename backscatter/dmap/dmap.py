@@ -398,7 +398,7 @@ class RawDmapRead(object):
 
         # parses the whole file/stream into a byte array
         if stream is False:  # REVIEW #39 - be consistent across all conditionals, 'if not stream'
-            with open(dmap_data, 'rb') as f:
+            with open(dmap_data, 'rb') as f:  # REVIEW #15 this will raise an IOError on non-file existence. Check for it?
                 self.dmap_bytearr = bytearray(f.read())
 
             if os.stat(dmap_data).st_size == 0:
@@ -981,8 +981,8 @@ class RawDmapWrite(object):
 
         name = "{0}\0".format(scaler.get_name())
         struct_fmt = '{0}s'.format(len(name))
-        name_bytes = struct.pack(struct_fmt, name)
-        dmap_type_bytes = struct.pack('c', chr(scaler.get_type()))
+        name_bytes = struct.pack(struct_fmt, name) # REVIEW #1 Not sure how this line works, it says it returns a string, but you're using it to count number of bytes... can you explain?
+        dmap_type_bytes = struct.pack('c', chr(scaler.get_type())) # REVIEW #1 we're confused because struct.pack says it returns a string
 
         data_type_fmt = scaler.get_datatype_fmt()
 
@@ -996,7 +996,7 @@ class RawDmapWrite(object):
         else:
             data_bytes = struct.pack(data_type_fmt, scaler.get_data())
 
-        total_bytes = name_bytes + dmap_type_bytes + data_bytes
+        total_bytes = name_bytes + dmap_type_bytes + data_bytes  # REVIEW #26 If this is truly a string, then this could be named better - something like 'dmap_bytes_string'.
 
         return total_bytes
 
@@ -1116,7 +1116,7 @@ def dicts_to_file(data_dicts, file_path, file_type=''):
      'time.hr': 'h',
      'time.mt': 'h',
      'time.sc': 'h',
-     'time.us': 'i',
+     'time.us': 'i', # REVIEW #0 Is this supposed to be a short? EDIT : NOPE OUR DOC IS WRONG!
      'txpow': 'h',
      'nave': 'h',
      'atten': 'h',
@@ -1134,7 +1134,7 @@ def dicts_to_file(data_dicts, file_path, file_type=''):
      'offset': 'h',
      'rxrise': 'h',
      'intt.sc': 'h',
-     'intt.us': 'i',
+     'intt.us': 'i',  # REVIEW #0 Is this supposed to be a short? OUR DOC IS WRONG
      'txpl': 'h',
      'mpinc': 'h',
      'mppul': 'h',
@@ -1152,10 +1152,10 @@ def dicts_to_file(data_dicts, file_path, file_type=''):
      'thr': 'f',
      'ptab': 'h',
      'ltab': 'h',
-     'slist': 'h',
+     'slist': 'h',  # REVIEW #0 slist and pwr0 are reversed from the rawacf documentation : EDIT DOC IS WRONG!!!!
      'pwr0': 'f',
-     'acfd': 'f',
-     'xcfd': 'f',
+     'acfd': 'f',  # REVIEW #0 should this be a short? EDIT DOC IS WRONG!!!
+     'xcfd': 'f',  # REVIEW #0 should this be a short? EDIT DOC IS WRONG!!!
     }
 
     mapfile_types = {
@@ -1401,7 +1401,7 @@ def dicts_to_file(data_dicts, file_path, file_type=''):
     }.get(file_type, None)
 
     if ud_types is None:
-        raise ValueError("Incorrect or missing file type")
+        raise ValueError("Incorrect or missing file type")  # REVIEW #7 doesn't support .dat, .fit
 
     for dd in data_dicts:
         for k, v in dd.iteritems():
@@ -1411,12 +1411,12 @@ def dicts_to_file(data_dicts, file_path, file_type=''):
                 raise DmapDataError(message)
 
     for k, v in ud_types.iteritems():
-        if k not in dd:
+        if k not in dd:  # REVIEW # 0 What is dd supposed to be here? was this for loop supposed to be indented into the above for loop? (dd is not declared here)
             message = "DICTS_TO_FILE: Supplied dictionary "
             "is missing field {0}".format(k)
             raise DmapDataError(message)
 
-    wr = RawDmapWrite(data_dicts, file_path, ud_types)  # REVIEW #37 What is the purpose of this line?
+    wr = RawDmapWrite(data_dicts, file_path, ud_types)  # REVIEW #37/#42 What is the purpose of this line's return value?
 
 
 def parse_dmap_format_from_file(filepath, raw_dmap=False):
@@ -1432,7 +1432,7 @@ def parse_dmap_format_from_file(filepath, raw_dmap=False):
 
     dm = RawDmapRead(filepath)
 
-    if raw_dmap:
+    if raw_dmap:  # REVIEW #8 looks like you never test or call this function with raw_dmap=True. Is there a use case?
         return dm
     else:
         records = dm.get_records()
@@ -1441,7 +1441,7 @@ def parse_dmap_format_from_file(filepath, raw_dmap=False):
         return data_list
 
 
-def parse_dmap_format_from_stream(stream, raw_dmap=False):
+def parse_dmap_format_from_stream(stream, raw_dmap=False):  # REVIEW #8 looks like you never test or call this function
     """Creates a new dmap object from a stream and then formats the data results
     into a nice list of dictionaries
 
@@ -1464,14 +1464,14 @@ def parse_dmap_format_from_stream(stream, raw_dmap=False):
 
 
 def dmap_rec_to_dict(rec):
-    """Converts the dmap record data to a easy to use dictionary
+    """Converts the dmap record data to an easy to use dictionary
 
     :param rec: a RawDmapRecord
     :returns: a dictionary of all data contained in the record
 
     """
 
-    parsed_items = {}  # REVIEW #37 What is the point of this variable?
+    parsed_items = {}  # REVIEW #37/#42 What is the point of this variable?
     scalers = rec.get_scalers()
     arrays = rec.get_arrays()
 
