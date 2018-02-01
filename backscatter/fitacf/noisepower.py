@@ -1,4 +1,4 @@
-import math
+import math  # REVIEW #7 license
 import numpy as np
 
 
@@ -45,7 +45,7 @@ class NoisePower(object):
 
     @staticmethod
     def acf_cutoff_pwr(raw_data):
-        """Determines the flucuation level for which ACFs are pure noise
+        """Determines the fluctuation level for which ACFs are pure noise
 
         Uses the ten weakest ACFS to determine noise level. A noise
         correction is applied to reduce underestimation.

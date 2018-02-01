@@ -8,7 +8,7 @@ from backscatter import hdw_info as hdw
 
 V_MAX = float(config.get("fitacf", "v_max"))
 W_MAX = float(config.get("fitacf", "w_max"))
-C = 299792458.0
+C = 299792458.0  # REVIEW #29 use builtin? Unless you need to import an entire package for it... then maybe this is OK (with a comment)
 
 
 FITACF_REVISION_MAJOR = int(config.get("fitacf", "fitacf_revision_major"))
@@ -16,7 +16,7 @@ FITACF_REVISON_MINOR = int(config.get("fitacf", "fitacf_revision_minor"))
 
 
 class Determinations(object):
-    """This is a class to construct a new dictionary of final deteminations
+    """This is a class to construct a new dictionary of final determinations
 
     This class holds the methods to convert fitted data into the final measurements
     of the plasma
@@ -40,7 +40,7 @@ class Determinations(object):
         """
 
         new_parameter_dict = {}
-
+# REVIEW #22 You have the dmap class with the parameters all listed already, is there a way you can re-use that instead of duplicating these all again?
         new_parameter_dict['radar.revision.major'] = raw_data['radar.revision.major']
         new_parameter_dict['radar.revision.minor'] = raw_data['radar.revision.minor']
         new_parameter_dict['origin.code'] = raw_data['origin.code']
@@ -249,7 +249,7 @@ class Determinations(object):
 
         noise_dB = 10 * np.log10(noise_pwr)  # REVIEW # - what does 10 mean?
 
-        p_s_conversion = lambda x: 10 * x / np.log(10) - noise_dB  # REVIEW # - what does 10 mean? # - do not use a lambda expression
+        p_s_conversion = lambda x: 10 * x / np.log(10) - noise_dB  # REVIEW #29 - what does 10 mean? # - do not use a lambda expression
 
         p_s = [p_s_conversion(range_obj.quadratic_pwr_fit.a) for range_obj in range_list]
 
@@ -263,7 +263,7 @@ class Determinations(object):
 
         """
 
-        p_s_err_conversion = lambda x: 10 * np.sqrt(x) / np.log(10)  # REVIEW # - what does 10 mean? # - do not use a lambda expression
+        p_s_err_conversion = lambda x: 10 * np.sqrt(x) / np.log(10)  # REVIEW #29 - what does 10 mean? # - do not use a lambda expression
 
         p_s_err = [p_s_err_conversion(range_obj.quadratic_pwr_fit_err.sigma_2_a) for range_obj in range_list]
 
@@ -279,7 +279,7 @@ class Determinations(object):
 
         """
 
-        vel_conversion = C / ((4 * np.pi) * (raw_data['tfreq'] * 1000.0)) * hdw_info['velsign']  # REVIEW # - what does 4 and 1000.0 mean?
+        vel_conversion = C / ((4 * np.pi) * (raw_data['tfreq'] * 1000.0)) * hdw_info['velsign']  # REVIEW #29 - what does 4 and 1000.0 mean?
 
         vel_calculation = lambda x: x * vel_conversion  # REVIEW # - do not use lambda expression
         vel = [vel_calculation(range_obj.phase_fit.b) for range_obj in range_list]
@@ -343,7 +343,7 @@ class Determinations(object):
 
         """
 
-        w_s_conversion = C / (4 * np.pi) / (raw_data['tfreq'] * 1000.0) * 4.0 * np.sqrt(np.log(2))  # REVIEW # - what does 4, 1000 and 2 mean?
+        w_s_conversion = C / (4 * np.pi) / (raw_data['tfreq'] * 1000.0) * 4.0 * np.sqrt(np.log(2))  # REVIEW #29 - what does 4, 1000 and 2 mean?
 
         w_s_calculation = lambda x: np.sqrt(np.fabs(x)) * w_s_conversion  # REVIEW # - do not use lambda expression
         w_s = [w_s_calculation(range_obj.quadratic_pwr_fit.b) for range_obj in range_list]
@@ -360,9 +360,9 @@ class Determinations(object):
 
         """
 
-        w_s_conversion = C / (4 * np.pi) / (raw_data['tfreq'] * 1000.0) * 4.0 * np.sqrt(np.log(2))  # REVIEW # - what does 4, 1000 and 2 mean?
+        w_s_conversion = C / (4 * np.pi) / (raw_data['tfreq'] * 1000.0) * 4.0 * np.sqrt(np.log(2))  # REVIEW #29 - what does 4, 1000 and 2 mean?
 
-        w_s_calculation = lambda x, y: np.sqrt(x) / 2.0 / np.sqrt(np.fabs(y)) * w_s_conversion  # REVIEW # - what does 2 mean? # - do not use lambda expression
+        w_s_calculation = lambda x, y: np.sqrt(x) / 2.0 / np.sqrt(np.fabs(y)) * w_s_conversion  # REVIEW #29 - what does 2 mean? # - do not use lambda expression
 
         w_s_err = [w_s_calculation(range_obj.quadratic_pwr_fit_err.sigma_2_b, range_obj.quadratic_pwr_fit.b)
                    for range_obj in range_list]
