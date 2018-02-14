@@ -152,9 +152,6 @@ class ACFFitting(object):
                 error_string.format(range_obj.range_number)
                 #eprint(error_string,elev_inverse_alpha_2,pwr_values)
 
-            phase_sigmas = np.array([math.pi if sigma > math.pi else sigma for sigma in phase_sigmas])
-            elev_sigmas = np.array([math.pi if sigma > math.pi else sigma for sigma in elev_sigmas])
-
             """Since lag 0 phase is included for elevation fit, we set lag 0 sigma the
             same as lag 1 sigma"""
             elev_sigmas[0] = elev_sigmas[1]
@@ -334,7 +331,8 @@ class ACFFitting(object):
 
         #I add a rounding here so that if there is inexact division of pi/2pi then
         #.49999999... gets rounded up first.
-        phase_diff = np.around((phase_predicted - phase_values)/(2 * math.pi), decimals=5)
+        phase_diff = (phase_predicted - phase_values)/(2 * math.pi)
+        phase_diff = np.around(phase_diff, decimals=5)
         phase_correction = np.array([round(pd) for pd in phase_diff])
 
         corrected_phase = phase_values + (phase_correction * 2 * math.pi)
