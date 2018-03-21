@@ -598,13 +598,11 @@ class RawDmapRead(object):
              negative. Record is likely corrupted"""
             raise DmapDataError(message)
 
-        #print("array_dimension",array_dimension)
         dimensions = [self.read_data('i') for i in range(0,array_dimension)]
-        #print("dimensions",dimensions)
         if not dimensions:
             message = "PARSE ARRAY: Array dimensions could not be parsed."
             raise DmapDataError(message)
-        elif sum(x <= 0 for x in dimensions) > 0:
+        elif sum(x <= 0 for x in dimensions) > 0 and name != "slist": # slist is exception
             message = """PARSE ARRAY: Array dimension is zero or negative.
              Record is likely corrupted"""
             raise DmapDataError(message)
