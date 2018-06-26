@@ -8,7 +8,7 @@ class NoisePower(object):
     """
 
     @staticmethod
-    def cutoff_power_correction(raw_data):
+    def cutoff_power_correction(raw_data):  # REVIEW #3 Reference a paper where these calculations come from
         """Computes the correction factor for noise power
 
         Computes a correction factor for the noise. Without this
@@ -26,12 +26,12 @@ class NoisePower(object):
         i = 0
         cumulative_pdf = 0.0
         cumulative_pdf_x_norm_pwr = 0
-        while cumulative_pdf < (10.0 / nrang):
+        while cumulative_pdf < (10.0 / nrang):  # REVIEW #29 - lots of magic numbers in here (10, 1000.0 ?)
             # Normalised power for calculating model PDF (Gaussian)
             normalized_pwr = i / 1000.0
 
             x = -((normalized_pwr - 1.0) ** 2 / (2.0 * std_dev ** 2))
-            pdf = math.exp(x) / std_dev / math.sqrt(2 * math.pi) / 1000
+            pdf = math.exp(x) / std_dev / math.sqrt(2 * math.pi) / 1000 # REVIEW #3 where does this calculation come from?
             cumulative_pdf = cumulative_pdf + pdf
 
             # Cumulative value of PDF*x -- needed for calculating the mean
@@ -59,7 +59,7 @@ class NoisePower(object):
         i, j = 0, 0
         min_pwr = 0
         nrang = raw_data['nrang']
-        while j < 10 and i < nrang / 3:
+        while j < 10 and i < nrang / 3: # REVIEW #29 - magic number 3,  magic number 10
             if sorted_pwr_levels[i] > 0.0:
                 j = j + 1
             min_pwr = min_pwr + sorted_pwr_levels[i]

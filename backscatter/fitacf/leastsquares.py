@@ -8,7 +8,7 @@ class LeastSquaresValues(object):
 
     """
     def __init__(self):
-        self.S = 0.0  # REVIEW #29 - Is there a reason why all these values are zero?
+        self.S = 0.0  # REVIEW #7 would be good to know what all these are
         self.S_x = 0.0
         self.S_y = 0.0
         self.S_xx = 0.0
@@ -22,19 +22,19 @@ class LeastSquaresValues(object):
         self.delta_b = 0.0
         self.cov_ab = 0.0
         self.r_ab = 0.0
-        self.Q = 0.0
+        self.Q = 0.0    # REVIEW #42 Is this used anywhere? doesn't seem to be calculated
         self.chi_2 = 0.0
 
 
-class LeastSquaresFitting(object):
+class LeastSquaresFitting(object): # TODO: Complete docstring (parameters)
     """This class holds all the methods needed to fit rawacf data
 
     This class holds methods for 1 parameter straight line fits,
-    2 parameter straight line fits, and 2 parameter quadratic fits.
+    2 parameter straight line fits, and 2 parameter quadratic fits. 
 
     """
 
-    def __init__(self, confidence, DoF):
+    def __init__(self, confidence, DoF):  # REVIEW #40 - pycharm complains about the DoF capitalization
         self.delta_chi_2 = [[1.00, 2.30],  # REVIEW #29 - what do these numbers mean?
                             [2.71, 4.61],
                             [4.00, 6.17],
@@ -44,7 +44,7 @@ class LeastSquaresFitting(object):
         self.confidence = confidence - 1
         self.DoF = DoF - 1
 
-    def find_sums(self, lst_sqrs, x_arr, y_arr, sigmas, fit_type):
+    def find_sums(self, lst_sqrs, x_arr, y_arr, sigmas, fit_type):  # REVIEW #40 pycharm thinks this method could be static, but looks like you're modifying the lst_sqrs object. Could be that your oo programming architecture needs fixing, maybe putting the lst_sqrs values into the least squares class.
         """Computes the sums needed for linear least squares equations
 
         :param lst_sqrs: LeastSquaresValues object to fill
@@ -79,7 +79,7 @@ class LeastSquaresFitting(object):
             error_msg = "Invalid fit type {0} in find_sums()".format(fit_type)
             raise ValueError(error_msg)
 
-    def one_parameter_line_fit(self, x_arr, y_arr, sigmas, num_points):
+    def one_parameter_line_fit(self, x_arr, y_arr, sigmas, num_points):  # REVIEW #42 num_points isn't used
         """Computes a fit for the model y = bx
 
         :param x_arr: array with x-axis data
@@ -114,7 +114,7 @@ class LeastSquaresFitting(object):
 
         return lst_sqrs
 
-    def two_parameter_line_fit(self, x_arr, y_arr, sigmas, num_points):
+    def two_parameter_line_fit(self, x_arr, y_arr, sigmas, num_points):  # REVIEW #42 num_points isn't used
         """Computes a fit for the model y = bx + a
 
         :param x_arr: array with x-axis data
@@ -152,7 +152,7 @@ class LeastSquaresFitting(object):
 
         return lst_sqrs
 
-    def quadratic_fit(self, x_arr, y_arr, sigmas, num_points):
+    def quadratic_fit(self, x_arr, y_arr, sigmas, num_points):  # REVIEW #42 num_points isn't used
         """Computes a fit for the model y = bx^2 + a
 
         :param x_arr: array with x-axis data
@@ -190,7 +190,7 @@ class LeastSquaresFitting(object):
 
         return lst_sqrs
 
-    def find_chi_2(self, lst_sqrs, x_arr, y_arr, sigmas, fit_type):
+    def find_chi_2(self, lst_sqrs, x_arr, y_arr, sigmas, fit_type): # REVIEW #40 pycharm thinks this method could be static, but it looks like you're modifying lst_sqrs, so it could be that your object oriented architecture needs fixing here (put the values inside the least squares class?)
         """Computes the chi-square statistic of the fit
 
         :param lst_sqrs: LeastSquaresValues object with parameters a and b

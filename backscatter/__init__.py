@@ -3,8 +3,8 @@ import os
 import core
 # REVIEW #40 Need two lines here
 #parsing config files # REVIEW #1 space after '#' required, same goes for below comment
-config = core.parse_config_file()
-
+config = core.parse_config_file()  # REVIEW #40 Globals should be capitalized
+# REVIEW #30 - Do globals belong in __init__.py or should they go into a file named more appropriately?
 hdw_files_path = config.get("core","hdw_files_path") # REVIEW #40 missing whitespace after comma
 
 hdw_info = core.parse_hdw_files(hdw_files_path)

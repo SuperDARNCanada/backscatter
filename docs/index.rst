@@ -21,10 +21,10 @@ Installation
 backscatter can be installed or used in a couple of different ways.
 
 The package can be cloned from https://github.com/SuperDARNCanada/backscatter.
-In order to work with the package, one can simply enter the directory and work
+In order to work with the package, one can simply enter the directory and work # REVIEW #7 This method of installation typically for developers, can you indicate that?
 from there, or add it to the Python path.
 
-backscatter can also be installed as a package by running
+backscatter can also be installed as a package by running # REVIEW #7 This method of installation typically for users, can you indicate that?
 ``python setup.py install`` from within the directory OR
 via pip VCS install by running ``pip install git+git://github.com/SuperDARNCanada/backscatter.git`` without having to clone anything!
 

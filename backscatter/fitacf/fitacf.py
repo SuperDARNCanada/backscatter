@@ -15,7 +15,7 @@ from fitting import ACFFitting
 from determinations import Determinations
 
 
-# for printing to stderr easily and portably
+# for printing to stderr easily and in a portable way
 def eprint(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
@@ -71,10 +71,10 @@ class PowerDataPoints(object):
 
     """
 
-    def __init__(self, raw_data, lags, range_obj):
+    def __init__(self, raw_data, lags, range_obj):  # TODO: Docstring with params
         self.log_pwrs = None
         self.sigmas = None
-        self.t = None
+        self.t = None # REVIEW #26 what is t?
         self.alpha_2 = range_obj.alpha_2
         self.create_arrays(raw_data, lags, range_obj)
 
@@ -88,7 +88,7 @@ class PowerDataPoints(object):
 
         :param raw_data: a dictionary of raw data parameters
         :param lags: list of lag dictionaries
-        :param range_obj: The range object this data is to associated with
+        :param range_obj: The range object this data is associated with
 
         """
         acfd = raw_data['acfd'][range_obj.range_idx]
@@ -109,17 +109,17 @@ class PowerDataPoints(object):
         inverse_alpha_2 = np.reciprocal(range_obj.alpha_2)
 
         sigmas = [pwr0 * np.sqrt((pn_2 + ia_2) / (2 * nave))
-                  for (pwr, pn_2, ia_2) in zip(pwrs, pwr_normalized_2, inverse_alpha_2)]
+                  for (pwr, pn_2, ia_2) in zip(pwrs, pwr_normalized_2, inverse_alpha_2)]  # REVIEW #42 pwr/pwrs is unused in this list comprehension
 
         self.sigmas = np.array(sigmas)
 
-        t_values = [lag['number'] * mpinc * 1.0e-6 for (pwr, lag) in zip(pwrs, lags)]
+        t_values = [lag['number'] * mpinc * 1.0e-6 for (pwr, lag) in zip(pwrs, lags)]  # REVIEW #5 #29 what is 1.0e-6 for? #42 pwr/pwrs is unused here
 
         self.t = np.array(t_values)
 
         # there will for sure be log of 0 here, but we filter it and
         # dont need to be warned
-        warnings.simplefilter("ignore")
+        warnings.simplefilter("ignore") # REVIEW #0 do you want to put warnings.resetwarnings() after the call to np.log(pwrs)?
         self.log_pwrs = np.log(pwrs)
 
     def remove_bad_points(self, bad_indices):
@@ -135,21 +135,21 @@ class PowerDataPoints(object):
         num_points = len(self.log_pwrs)
 
         # Removes any indices that are larger than length of data array
-        # incase those points were removed already
+        # in case those points were removed already
 
         if max(bad_indices) >= num_points:
             bad_indices = [bi for bi in bad_indices if bi < num_points]
 
         mask = np.ones(num_points, np.bool)
-        mask[bad_indices] = 0
+        mask[bad_indices] = 0  # REVIEW Neat, we learned something here. maybe a comment saying this mask sets the bad indices to False, OR you could set this to False instead of 0 since you're using booleans
 
         self.log_pwrs = self.log_pwrs[mask]
         self.sigmas = self.sigmas[mask]
         self.t = self.t[mask]
         self.alpha_2 = self.alpha_2[mask]
 
-    def remove_inf_points(self, non_inf_indices):
-
+    def remove_inf_points(self, non_inf_indices):  # TODO: DOCSTRING
+        # REVIEW #42 unused function, where is it called?
         self.log_pwrs = self.log_pwrs[non_inf_indices]
         self.sigmas = self.sigmas[non_inf_indices]
         self.t = self.t[non_inf_indices]
@@ -166,10 +166,10 @@ class PhaseDataPoints(object):
 
     """
 
-    def __init__(self, raw_data, phase_type, lags, range_obj):
+    def __init__(self, raw_data, phase_type, lags, range_obj):  # TODO: Docstring with params
         self.phases = None
         self.sigmas = None
-        self.t = None
+        self.t = None  # REVIEW #26 what is t?
         self.alpha_2 = range_obj.alpha_2
 
         self.create_arrays(raw_data, phase_type, lags, range_obj)
@@ -193,8 +193,8 @@ class PhaseDataPoints(object):
         mplgs = raw_data['mplgs']
         mpinc = raw_data['mpinc']
 
-        if phase_type not in raw_data:
-            acfd = np.zeros((mplgs, 2))
+        if phase_type not in raw_data:  # REVIEW #15 Shouldn't phase_type be error checked - compare to 'acfd' and 'xcfd' and then raise error, and have a default value of 'acfd'?
+            acfd = np.zeros((mplgs, 2))  # REVIEW #0 confusing if statement... maybe because of the variable name?
         else:
             acfd = raw_data[phase_type][range_obj.range_idx]
 
@@ -203,9 +203,9 @@ class PhaseDataPoints(object):
 
         self.phases = np.arctan2(imag, real)
 
-        self.sigmas = np.zeros(mplgs)
+        self.sigmas = np.zeros(mplgs)  # REVIEW #7 confusing because in the docstring you say t is determined after sigma is, but you also say it's just a placeholder at this point, and here it's just 0's... maybe reword the docstring?
 
-        self.t = np.array([lag['number'] * mpinc * 1.0e-6 for lag in lags])
+        self.t = np.array([lag['number'] * mpinc * 1.0e-6 for lag in lags]) # REVIEW #5 #29 what is 1.0e-6 for?
 
     def remove_bad_points(self, bad_indices):
         """Removes data points that are to be excluded from fitting
@@ -219,12 +219,12 @@ class PhaseDataPoints(object):
         num_points = len(self.phases)
 
         # Removes any indices that are larger than length of data array
-        # incase those points were removed already
+        # in case those points were removed already
         if max(bad_indices) >= num_points:
             bad_indices = [bi for bi in bad_indices if bi < num_points]
 
         mask = np.ones(num_points, np.bool)
-        mask[bad_indices] = 0
+        mask[bad_indices] = 0 # REVIEW Neat, we learned something here. maybe a comment saying this mask sets the bad indices to False, OR you could set this to False instead of 0 since you're using booleans
         self.phases = self.phases[mask]
         self.sigmas = self.sigmas[mask]
         self.t = self.t[mask]
@@ -259,7 +259,7 @@ class Range(object):
 
     """
 
-    def __init__(self, idx, range_number, raw_data, lags):
+    def __init__(self, idx, range_number, raw_data, lags):  # TODO: DOCSTRING with params
         self.range_number = range_number
         self.range_idx = idx
         self.CRI = self.find_cri(raw_data)
@@ -275,10 +275,10 @@ class Range(object):
         self.phase_fit = None
         self.elev_fit = None
 
-    def find_cri(self, raw_data):
+    def find_cri(self, raw_data):        # TODO: Document return value in docstring
         """Creates an array of cross range interference for each pulse
 
-        :param raw_data: a dictionary of raw data parameters
+        :param raw_data: a dictionary of raw data parameters 
 
         """
 
@@ -293,11 +293,11 @@ class Range(object):
         if smsep != 0:
             tau = mpinc / smsep
         else:
-            eprint("r_overlap: WARNING, using txpl instead of smsep...\n")
+            eprint("r_overlap: WARNING, using txpl instead of smsep...\n") # REVIEW #15 you could raise a warning here. also, what does r_overlap mean? could elaborate slightly on the message "... for calculation of tau". Also need to error check txpl
             tau = mpinc / txpl
 
-        cri_for_pulses = np.ones(mppul)
-        for pulse_to_check in range(0, mppul):
+        cri_for_pulses = np.ones(mppul)  # REVIEW #7 some documentation here about how/why cri is calculated
+        for pulse_to_check in range(0, mppul): # REVIEW #22 performance - this loop could be sped up by starting from the last pulse and then 'continue' when you reach the lowest range that is affected by cri... something like that
             total_cri = 0.0
 
             for pulse in range(0, mppul):
@@ -352,11 +352,11 @@ class Range(object):
             bad_indices = [bi for bi in bad_indices if bi < num_points]
 
         mask = np.ones(len(self.alpha_2), np.bool)
-        mask[bad_indices] = 0
+        mask[bad_indices] = 0 # REVIEW #29 could be 'False' as above
         self.alpha_2 = self.alpha_2[mask]
 
 
-def debug_output(range_list):
+def debug_output(range_list):  # REVIEW #34 you could sprinkle these print statements throughout the code when they are calculated, but using the python logging functionality
 
     for range_obj in range_list:
         print("RANGE NUM", range_obj.range_number)
@@ -413,7 +413,7 @@ def debug_output(range_list):
         print("elev_fit.chi_2", range_obj.elev_fit.chi_2)
 
 
-def _fit(raw_data, debug_mode=False):
+def _fit(raw_data, debug_mode=False):  # REVIEW #42 debug_mode not used, can use python logging library instead if you want
     """Fits a single dictionary of raw data.
 
     This function is meant to be passed as an argument
@@ -431,7 +431,7 @@ def _fit(raw_data, debug_mode=False):
     if raw_data['nave'] <= 0:
         noise_pwr = 1.0
     else:
-        raw_data['nave']
+        raw_data['nave']  # REVIEW #33 what's happening here?
         noise_pwr = NoisePower.acf_cutoff_pwr(raw_data)
 
     range_list = []
@@ -494,7 +494,7 @@ if __name__ == "__main__":
     raw_records = dm.parse_dmap_format_from_file(args.infile)
 
     if args.debug_mode:
-        fitted_records = [_fit(rr, True) for rr in raw_records]
+        fitted_records = [_fit(rr, True) for rr in raw_records]  # REVIEW #33 debug mode commented out so this code does nothing anymore, same with the parser argument
     else:
         fitted_records = fit(raw_records)
 
