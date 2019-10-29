@@ -639,6 +639,8 @@ class RawDmapRead(object):
             data_array = np.array(self.build_n_dimension_list(dimensions,data_type_fmt))
         else:
             data_array = self.read_numerical_array(data_type_fmt,dimensions,total_elements)
+        #data_array = np.ones(dimensions)
+        #self.cursor = self.cursor + total_elements * self.get_num_bytes(data_type_fmt)
 
         return RawDmapArray(name,data_type,data_type_fmt,mode,array_dimension,dimensions,data_array)
 
@@ -693,7 +695,7 @@ class RawDmapRead(object):
             #print (data,data_type)
             self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
         elif data_type_fmt is not 's':
-            data = struct.unpack_from(data_type_fmt,buffer(self.dmap_bytearr),self.cursor)
+            data = struct.unpack_from(data_type_fmt,memoryview(self.dmap_bytearr),self.cursor)
             #print(data,data_type)
             self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
         else:
@@ -706,7 +708,8 @@ class RawDmapRead(object):
                     raise DmapDataError(message)
 
             char_count = '{0}s'.format(byte_counter)
-            data = struct.unpack_from(char_count,buffer(self.dmap_bytearr),self.cursor)
+            data = struct.unpack_from(char_count,memoryview(self.dmap_bytearr),self.cursor)
+            data = (data[0].decode('utf-8'),)
             self.cursor = self.cursor + byte_counter + 1
 
 
@@ -848,7 +851,7 @@ class RawDmapWrite(object):
 
         """
         record = RawDmapRecord()
-        for k,v in data_dict.iteritems():
+        for k,v in data_dict.items():
 
             if k in self.ud_types:
                 data_type_fmt = self.ud_types[k]
@@ -953,8 +956,8 @@ class RawDmapWrite(object):
 
         name = "{0}\0".format(scaler.get_name())
         struct_fmt = '{0}s'.format(len(name))
-        name_bytes = struct.pack(struct_fmt,name)
-        dmap_type_bytes = struct.pack('c',chr(scaler.get_type()))
+        name_bytes = struct.pack(struct_fmt,str.encode(name))
+        dmap_type_bytes = struct.pack('c',bytes([scaler.get_type()]))
 
         data_type_fmt = scaler.get_datatype_fmt()
 
@@ -962,10 +965,10 @@ class RawDmapWrite(object):
         if data_type_fmt == 's':
             data = "{0}\0".format(scaler.get_data())
             struct_fmt = '{0}s'.format(len(data))
-            data_bytes = struct.pack(struct_fmt,data)
+            data_bytes = struct.pack(struct_fmt,str.encode(data))
             #data_bytes = scaler.get_data().encode('utf-8') + chr(0)
         elif data_type_fmt == 'c':
-            data_bytes = chr(scaler.get_data())
+            data_bytes = bytes([scaler.get_data()])
         else:
             data_bytes = struct.pack(data_type_fmt,scaler.get_data())
 
@@ -985,9 +988,9 @@ class RawDmapWrite(object):
 
         name = "{0}\0".format(array.get_name())
         struct_fmt = '{0}s'.format(len(name))
-        name_bytes = struct.pack(struct_fmt,name)
+        name_bytes = struct.pack(struct_fmt,str.encode(name))
 
-        dmap_type_bytes = struct.pack('c',chr(array.get_type()))
+        dmap_type_bytes = struct.pack('c',bytes([array.get_type()]))
 
         data_type_fmt = array.get_datatype_fmt()
 
@@ -1378,12 +1381,12 @@ def dicts_to_file(data_dicts,file_path,file_type=''):
         raise ValueError("Incorrect or missing file type")
 
     for dd in data_dicts:
-        for k,v in dd.iteritems():
+        for k,v in dd.items():
             if k not in ud_types:
                 message = "DICTS_TO_FILE: A supplied dictionary contains extra field {0}".format(k)
                 raise DmapDataError(message)
 
-    for k,v in ud_types.iteritems():
+    for k,v in ud_types.items():
         if k not in dd:
             message = "DICTS_TO_FILE: Supplied dictionary is missing field {0}".format(k)
             raise DmapDataError(message)
@@ -1454,13 +1457,14 @@ def dmap_rec_to_dict(rec):
 
 if __name__ == '__main__':
     pass
-    dm = RawDmapRead('20101211.0047.24.cve.rawacf')
+    #dm = RawDmapRead('20101211.0047.24.cve.rawacf')
     #records = parse_dmap_format_from_file('testfiles/20150831.0000.03.bks.rawacf')
     #print(records[5])
     #records = parse_dmap_format('20150831.0000.03.bks_corrupt.rawacf')
     #wr = RawDmapWrite(records,"testing.acf")
 
-    #records = parse_dmap_format_from_file('testing.acf')
+    records = parse_dmap_format_from_file('../../20070101.2201.00.sas.rawacf')
+    print(len(records))
 
     #wr = RawDmapWrite(records,"testing.acf")
     #dicts_to_rawacf(records,'testing.acf')

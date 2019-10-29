@@ -1,6 +1,6 @@
-import ConfigParser as cp
+import configparser as cp
 import os
-import core
+import backscatter.core.core as core
 
 #parsing config files
 config = core.parse_config_file()
@@ -12,8 +12,8 @@ hdw_info = core.parse_hdw_files(hdw_files_path)
 #adding modules that will be seen at import                
 __all__ = ["fitacf","dmap"] 
 
-from . import dmap
-from . import fitacf
+from .dmap import dmap
+from .fitacf import fitacf
 
 
 

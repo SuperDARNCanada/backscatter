@@ -15,15 +15,15 @@ class CustomInstall(install):
     def run(self):
         self.create_config_files()
         install.run(self)
-    
+
     def create_config_files(self):
         #Creating default configuation files
 
-        import ConfigParser as cp
+        import configparser as cp
         import os
-        
+
         config = cp.RawConfigParser()
-        
+
         config.add_section('fitacf')
         config.set('fitacf', 'w_max', '90.0')
         config.set('fitacf', 'v_max', '30.0')
@@ -33,13 +33,13 @@ class CustomInstall(install):
         config.set('fitacf', 'alpha_cutoff', '2.0')
         config.set('fitacf', 'acf_snr_cutoff', '1.0')
         config.set('fitacf', 'minimum_lags', '3')
-        
+
         config.add_section('core')
         config.set('core', 'hdw_files_path', '/usr/local/hdw.dat')
-        
+
         for loc in os.path.expanduser("~"), "/etc/backscatter":
             file_path = os.path.join(loc,"backscatter.ini")
-        
+
             if not os.path.exists(os.path.dirname(file_path)):
                 try:
                     os.makedirs(loc)
@@ -47,12 +47,12 @@ class CustomInstall(install):
                     if exc.errno != errno.EEXIST:
                         if exc.errno == errno.EACCES:
                             err_msg = """Could not create installation folder
-                            at {0}. Please manually create or reinstall as 
+                            at {0}. Please manually create or reinstall as
                             root.""".format(loc)
                             print(err_msg)
                         else:
                             raise
-            
+
             try:
                 with open(file_path,'wb') as cfg:
                     config.write(cfg)
@@ -72,7 +72,7 @@ setup_args  =  {
     'author' : "SuperDARN Canada",
     'license' : "GNU",
     'packages' : find_packages(exclude=['contrib', 'docs', 'tests']),
-    'setup_requires' : ['ConfigParser'],
+    'setup_requires' : ['configparser'],
     'install_requires' : ['numpy>=1.8'],
     'cmdclass' : {'install' : CustomInstall,},
 }
@@ -82,4 +82,4 @@ setup(**setup_args)
 
 
 
-    
+

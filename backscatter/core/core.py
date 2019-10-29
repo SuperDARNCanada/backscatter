@@ -1,5 +1,5 @@
 import os
-import ConfigParser as cp
+import configparser as cp
 
 
 def parse_hdw_files(hdw_files_path):

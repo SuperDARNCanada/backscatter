@@ -1,4 +1,4 @@
-import leastsquares as ls
+import backscatter.fitacf.leastsquares as ls
 import numpy as np
 import math
 

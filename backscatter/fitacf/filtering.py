@@ -42,6 +42,7 @@ class Filtering(object):
                 pulses_stereo.append(pulse_us)
 
         pulses_in_us = pulses_in_us + pulses_stereo
+        pulses_in_us = sorted(pulses_in_us)
         i = -1
         ts, t1, t2, sample = lagfr, 0, 0, 0
         bad_samples = []
