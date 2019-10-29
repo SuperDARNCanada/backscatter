@@ -134,7 +134,7 @@ class Determinations(object):
         if 'xcfd' not in raw_data:
             new_parameter_dict['phi0'] = float_zeroes
         else:
-            new_parameter_dict['phi0'] = self.set_xcf_phi0(range_list,raw_data)
+            new_parameter_dict['phi0'] = self.set_xcf_phi0(range_list,raw_data, hdw_info)
 
         new_parameter_dict['phi0_e'] = self.set_xcf_phi0_err(range_list)
 
@@ -452,7 +452,7 @@ class Determinations(object):
 
         antenna_sep = np.sqrt(x*x + y*y + z*z)
 
-        elev_corr = hdw_info['phasesign'] * np.arcsin(z/antenna_sep)
+        elev_corr = np.arcsin(z/antenna_sep)
 
         elevations = {}
 
@@ -477,20 +477,13 @@ class Determinations(object):
 
         if(phi_sign < 0):
             psi_uncorrected = [psi_u + 2 * np.pi for psi_u in psi_uncorrected]
-            #psi_uncorrected = psi_uncorrected + 2 * np.pi
-        #psi_uncorrected = np.array(psi_uncorrected)
 
         psi = [psi_u - cable_offset for psi_u in psi_uncorrected]
 
         psi_kd = [p/(wave_num * antenna_sep) for p in psi]
         theta = [c_phi_0**2 - pkd**2 for pkd in psi_kd]
 
-        # if( (theta < 0.0) or (np.fabs(theta) > 1.0)):
-        #   elevation = -elev_corr
-        # else:
-        #   elevation = np.arcsin(np.sqrt(theta))
-
-        elev_calculation = lambda x: -elev_corr if (t < 0.0 or np.fabs(x) > 1.0) else np.arcsin(np.sqrt(x))
+        elev_calculation = lambda x: -elev_corr if (x < 0.0 or np.fabs(x) > 1.0) else np.arcsin(np.sqrt(x))
         elevation = [elev_calculation(t) for t in theta]
 
         elevations['high'] = [180/np.pi * (elev + elev_corr) for elev in elevation]
@@ -503,7 +496,6 @@ class Determinations(object):
         errors = [range_obj.elev_fit.sigma_2_a for range_obj in range_list]
         elevations['low'] = [elev_low_calculation(err,dfdy) for err,dfdy in zip(errors,df_by_dy)]
 
-
         #Experiment to compare fitted and measured elevation
         xcfd = raw_data['xcfd']
         real = [xcfd[range_obj.range_idx][0][0] for range_obj in range_list]
@@ -513,9 +505,6 @@ class Determinations(object):
         psi_uu_calculation = lambda x: x + 2 * np.pi * np.floor((phase_diff_max-x)/(2*np.pi))
         psi_uncorrected_unfitted = [psi_uu_calculation(x) for x in xcf0_p]
 
-        # if phi_sign < 0:
-        #   psi_uncorrected_unfitted = psi_uncorrected_unfitted + (2 * np.pi)
-
         psi_uu_calculation = lambda x: x + (2 * np.pi) if phi_sign < 0 else x
         psi_uncorrected_unfitted = [psi_uu_calculation(p_uu) for p_uu in psi_uncorrected_unfitted]
 
@@ -524,14 +513,7 @@ class Determinations(object):
         psi_kd = [p/(wave_num * antenna_sep) for p in psi]
         theta = [c_phi_0**2 - pkd**2 for pkd in psi_kd]
 
-        # if( (theta < 0.0) or (np.fabs(theta) > 1.0) ){
-        #   elevation = -elev_corr
-        # }
-        # else{
-        #   elevation = np.arcsin(np.sqrt(theta))
-        # }
-
-        elev_calculation = lambda x: -elev_corr if (t < 0.0 or np.fabs(x) > 1.0) else np.arcsin(np.sqrt(x))
+        elev_calculation = lambda x: -elev_corr if (x < 0.0 or np.fabs(x) > 1.0) else np.arcsin(np.sqrt(x))
         elevation = [elev_calculation(t) for t in theta]
 
         elevations['normal'] = [180/np.pi * (elev + elev_corr) for elev in elevation]
@@ -539,16 +521,19 @@ class Determinations(object):
         return elevations
 
 
-    def set_xcf_phi0(self,range_list, raw_data):
+    def set_xcf_phi0(self, range_list, raw_data, hdw_info):
         """Sets the unfitted offset of the XCF phase for each range
 
         :param range_list: a list of Range objects after fitting
+        :param raw_data: a dictionary of raw data parameters
+        :param hdw_info: a dictionary of the radar hardware information
         :returns: an array of unfitted XCF phases offsets
 
         """
         #phi0 = [range_obj.elev_fit.a for range_obj in range_list]
         xcfd = [raw_data['xcfd'][range_obj.range_idx] for range_obj in range_list]
         phi0 = [np.arctan2(xcf[0][1],xcf[0][0]) for xcf in xcfd]
+        phi0 = [p * hdw_info['phasesign'] for p in phi0]
 
         return np.array(phi0)
 

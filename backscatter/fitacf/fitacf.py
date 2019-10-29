@@ -9,10 +9,10 @@ import warnings
 import argparse
 from backscatter import dmap as dm
 
-from noisepower import NoisePower
-from filtering import Filtering
-from fitting import ACFFitting
-from determinations import Determinations
+from backscatter.fitacf.noisepower import NoisePower
+from backscatter.fitacf.filtering import Filtering
+from backscatter.fitacf.fitting import ACFFitting
+from backscatter.fitacf.determinations import Determinations
 
 
 #for printing to stderr easily and portably
@@ -110,10 +110,7 @@ class PowerDataPoints(object):
         sigmas = [pwr0 * np.sqrt((pn_2 + ia_2)/(2 * nave)) for (pwr, pn_2, ia_2) in zip(pwrs, pwr_normalized_2,inverse_alpha_2)]
 
         self.sigmas = np.array(sigmas)
-
-        t_values = [lag['number'] * mpinc * 1.0e-6 for (pwr, lag) in zip(pwrs,lags)]
-
-        self.t = np.array(t_values)
+        self.t = np.round(np.array([lag['number'] * mpinc * 1.0e-6 for lag in lags]),decimals=6)
 
         #there will for sure be log of 0 here, but we filter it and
         #dont need to be warned
@@ -205,7 +202,7 @@ class PhaseDataPoints(object):
 
         self.sigmas = np.zeros(mplgs)
 
-        self.t = np.array([lag['number'] * mpinc * 1.0e-6 for lag in lags])
+        self.t = np.round(np.array([lag['number'] * mpinc * 1.0e-6 for lag in lags]),decimals=6)
 
     def remove_bad_points(self,bad_indices):
         """Removes data points that are to be excluded from fitting
@@ -302,7 +299,7 @@ class Range(object):
 
             for pulse in range(0,mppul):
                 pulse_diff = pulses[pulse_to_check] - pulses[pulse]
-                range_to_check = pulse_diff * tau + self.range_number
+                range_to_check = int(pulse_diff * tau + self.range_number)
 
                 if (pulse != pulse_to_check and
                     0 <= range_to_check and
@@ -356,8 +353,13 @@ class Range(object):
         mask[bad_indices] = 0
         self.alpha_2 = self.alpha_2[mask]
 
-def debug_output(range_list):
+def debug_output(range_list, raw_data):
     for range_obj in range_list:
+        time = "TIME %d-%02d-%02dT%02d:%02d:%f"%(raw_data['time.yr'], raw_data['time.mo'],
+                          raw_data['time.dy'], raw_data['time.hr'],
+                          raw_data['time.mt'], raw_data['time.sc'] +
+                          raw_data['time.us']/1.0e6)
+        print(time)
         print("RANGE NUM", range_obj.range_number)
         print("linear_pwr_fit.a", range_obj.linear_pwr_fit.a)
         print("linear_pwr_fit.b", range_obj.linear_pwr_fit.b)
@@ -375,6 +377,7 @@ def debug_output(range_list):
         print("quadratic_pwr_fit_err.b",range_obj.quadratic_pwr_fit_err.b)
         print("quadratic_pwr_fit_err.sigma_2_a",range_obj.quadratic_pwr_fit_err.sigma_2_a)
         print("quadratic_pwr_fit_err.sigma_2_b",range_obj.quadratic_pwr_fit_err.sigma_2_b)
+        print("alphas", range_obj.alpha_2)
         print("ACF LOG POWERS")
         for p,s,t in zip(range_obj.pwrs.log_pwrs, range_obj.pwrs.sigmas,range_obj.pwrs.t):
             print("power",p,"sigma",s,"t",t)
@@ -451,8 +454,8 @@ def _fit(raw_data, debug_mode=False):
     ACFFitting.xcf_phase_unwrap(range_list)
     ACFFitting.xcf_phase_fitting(range_list)
 
-    #if debug_mode:
-        #debug_output(range_list)
+    if debug_mode:
+        debug_output(range_list, raw_data)
 
     determined_parameters = Determinations(raw_data,range_list,noise_pwr)
     return determined_parameters.paramater_dict

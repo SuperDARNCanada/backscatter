@@ -1,4 +1,4 @@
-import leastsquares as ls
+import backscatter.fitacf.leastsquares as ls
 import numpy as np
 import math
 
@@ -151,9 +151,6 @@ class ACFFitting(object):
                 error_string = "Elevation sigmas bad at range {0} -- elev_inverse_alphas,pwr_values"
                 error_string.format(range_obj.range_number)
                 #eprint(error_string,elev_inverse_alpha_2,pwr_values)
-
-            phase_sigmas = np.array([math.pi if sigma > math.pi else sigma for sigma in phase_sigmas])
-            elev_sigmas = np.array([math.pi if sigma > math.pi else sigma for sigma in elev_sigmas])
 
             """Since lag 0 phase is included for elevation fit, we set lag 0 sigma the
             same as lag 1 sigma"""

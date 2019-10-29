@@ -1,3 +1,3 @@
 """..  automodule:: backscatter.fitacf"""
-from fitacf import *
+#from backscatter.fitacf import *
 
