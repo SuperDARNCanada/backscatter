@@ -96,8 +96,8 @@ class PowerDataPoints(object):
         nave = raw_data['nave']
         mpinc = raw_data['mpinc']
 
-        real = acfd[:,0]
-        imag = acfd[:,1]
+        real = acfd[:,0].astype(np.float64)
+        imag = acfd[:,1].astype(np.float64)
         real_2 = real**2
         imag_2 = imag**2
 
@@ -110,7 +110,7 @@ class PowerDataPoints(object):
         sigmas = [pwr0 * np.sqrt((pn_2 + ia_2)/(2 * nave)) for (pwr, pn_2, ia_2) in zip(pwrs, pwr_normalized_2,inverse_alpha_2)]
 
         self.sigmas = np.array(sigmas)
-        self.t = np.round(np.array([lag['number'] * mpinc * 1.0e-6 for lag in lags]),decimals=6)
+        self.t = np.array([lag['number'] * (mpinc * 1.0e-6) for lag in lags])
 
         #there will for sure be log of 0 here, but we filter it and
         #dont need to be warned
@@ -195,14 +195,15 @@ class PhaseDataPoints(object):
         else:
             acfd = raw_data[phase_type][range_obj.range_idx]
 
-        real = acfd[:,0]
-        imag = acfd[:,1]
+        real = acfd[:,0].astype(np.float64)
+        imag = acfd[:,1].astype(np.float64)
 
         self.phases = np.arctan2(imag,real)
 
         self.sigmas = np.zeros(mplgs)
 
-        self.t = np.round(np.array([lag['number'] * mpinc * 1.0e-6 for lag in lags]),decimals=6)
+        self.t = np.array([lag['number'] * (mpinc * 1.0e-6) for lag in lags])
+
 
     def remove_bad_points(self,bad_indices):
         """Removes data points that are to be excluded from fitting
@@ -420,6 +421,7 @@ def _fit(raw_data, debug_mode=False):
     """
 
     lags = create_lag_list(raw_data)
+
 
     # We check number of averages < 0 since this will cause invalid
     # division in the noise calculation

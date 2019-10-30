@@ -54,7 +54,7 @@ class CustomInstall(install):
                             raise
 
             try:
-                with open(file_path,'wb') as cfg:
+                with open(file_path,'w') as cfg:
                     config.write(cfg)
             except:
                 err_msg = """Could not install configuration file
