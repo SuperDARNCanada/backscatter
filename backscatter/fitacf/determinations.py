@@ -470,20 +470,19 @@ class Determinations(object):
 
         cable_offset = -2 * np.pi * tfreq * 1000 * hdw_info['tdiff'] * 1.0e-6
 
-        phase_diff_max = phi_sign * wave_num * antenna_sep * c_phi_0 + cable_offset
+        phase_diff_max =  wave_num * antenna_sep
 
-        psi_calculation = lambda x: x + 2 * np.pi * np.floor((phase_diff_max-x)/(2*np.pi))
+        psi_calculation = lambda x: 2 * np.pi * np.floor((phase_diff_max)/(2*np.pi))-x
         psi_uncorrected = [psi_calculation(range_obj.elev_fit.a) for range_obj in range_list]
 
-        if(phi_sign < 0):
-            psi_uncorrected = [psi_u + 2 * np.pi for psi_u in psi_uncorrected]
+        psi_uncorrected = [(x - 2 * np.pi) if x > phase_diff_max*c_phi_0 else x for x in psi_uncorrected]
 
-        psi = [psi_u - cable_offset for psi_u in psi_uncorrected]
+        psi = psi_uncorrected
 
         psi_kd = [p/(wave_num * antenna_sep) for p in psi]
         theta = [c_phi_0**2 - pkd**2 for pkd in psi_kd]
 
-        elev_calculation = lambda x: -elev_corr if (x < 0.0 or np.fabs(x) > 1.0) else np.arcsin(np.sqrt(x))
+        elev_calculation = lambda x: -elev_corr if (x < 0.0 or np.fabs(x) > 1.0) else np.arcsin(np.sqrt(x)/c_phi_0)
         elevation = [elev_calculation(t) for t in theta]
 
         elevations['high'] = [180/np.pi * (elev + elev_corr) for elev in elevation]
@@ -502,18 +501,16 @@ class Determinations(object):
         imag = [xcfd[range_obj.range_idx][0][1] for range_obj in range_list]
         xcf0_p = [np.arctan2(i,r) for i,r in zip(imag,real)]
 
-        psi_uu_calculation = lambda x: x + 2 * np.pi * np.floor((phase_diff_max-x)/(2*np.pi))
+        psi_uu_calculation = lambda x: 2 * np.pi * np.floor((phase_diff_max)/(2*np.pi))-(x * phi_sign)
         psi_uncorrected_unfitted = [psi_uu_calculation(x) for x in xcf0_p]
 
-        psi_uu_calculation = lambda x: x + (2 * np.pi) if phi_sign < 0 else x
-        psi_uncorrected_unfitted = [psi_uu_calculation(p_uu) for p_uu in psi_uncorrected_unfitted]
+        psi_uncorrected_unfitted = [x - 2 * np.pi if x > phase_diff_max*c_phi_0 else x for x in psi_uncorrected_unfitted]
 
-        psi = [p_uu - cable_offset for p_uu in psi_uncorrected_unfitted]
-
+        psi = psi_uncorrected_unfitted
         psi_kd = [p/(wave_num * antenna_sep) for p in psi]
         theta = [c_phi_0**2 - pkd**2 for pkd in psi_kd]
 
-        elev_calculation = lambda x: -elev_corr if (x < 0.0 or np.fabs(x) > 1.0) else np.arcsin(np.sqrt(x))
+        elev_calculation = lambda x: -elev_corr if (x < 0.0 or np.fabs(x) > 1.0) else np.arcsin(np.sqrt(x)/c_phi_0)
         elevation = [elev_calculation(t) for t in theta]
 
         elevations['normal'] = [180/np.pi * (elev + elev_corr) for elev in elevation]
