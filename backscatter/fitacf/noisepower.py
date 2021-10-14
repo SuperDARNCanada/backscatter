@@ -69,7 +69,7 @@ class NoisePower(object):
     
         min_pwr = min_pwr/j * NoisePower.cutoff_power_correction(raw_data)
     
-        if min_pwr < 1.0:
+        if min_pwr < 1.0 and raw_data['noise.search'] > 0:
             min_pwr = raw_data['noise.search']
     
         return min_pwr
