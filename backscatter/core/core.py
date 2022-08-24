@@ -64,6 +64,8 @@ def parse_hdw_files(hdw_files_path):
 
                     hdw_dict["maxgates"] = int(params[20])
                     hdw_dict["maxbeams"] = int(params[21])  # so beamnum points in a certain dir
+
+                    hdw_info[hdw_dict["stid"]] = hdw_dict
                     break
     except OSError as e:
         error_msg = "No directory {0} found when locating hdw files!".format(hdw_files_path)      
