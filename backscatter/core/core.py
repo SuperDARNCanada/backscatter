@@ -50,8 +50,8 @@ def parse_hdw_files(hdw_files_path):
                     hdw_dict["beamsep"] = float(params[9])  # degrees, nominal 3.24 degrees
                     hdw_dict["velsign"] = float(params[10])  # +1.0 or -1.0
                     hdw_dict["phasesign"] = float(params[11])  # +1 indicates correct int phase, -1 otherwise
-                    hdw_dict["tdiff_a"] = float(params[12])  # ns for channel A
-                    hdw_dict["tdiff_b"] = float(params[13])  # ns for channel B
+                    hdw_dict["tdiff_a"] = float(params[12])  # us for channel A
+                    hdw_dict["tdiff_b"] = float(params[13])  # us for channel B
 
                     # Meters, int offset from midpoint of main. [x, y, z] where x is along line of
                     # antennas, y is along array normal, z is altitude difference
