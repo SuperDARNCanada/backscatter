@@ -1,6 +1,7 @@
 import os
 import configparser as cp
 
+
 def parse_hdw_files(hdw_files_path):
 
     hdw_info = {}
@@ -45,7 +46,7 @@ def parse_hdw_files(hdw_files_path):
                     hdw_dict["lon"] = float(params[5])  # decimal degrees, W = negative
                     hdw_dict["altitude"] = float(params[6])  # metres
                     hdw_dict["boresight"] = float(params[7])  # degrees from geographic north, CCW = neg
-                    hdw_dict["boresight_shift"] = float(params[8])  # degrees from physical boresight. nominal 0.0 degrees
+                    hdw_dict["boresight_shift"] = float(params[8])  # degrees from physical boresight. Nominal 0.0 degrees
                     hdw_dict["beamsep"] = float(params[9])  # degrees, nominal 3.24 degrees
                     hdw_dict["velsign"] = float(params[10])  # +1.0 or -1.0
                     hdw_dict["phasesign"] = float(params[11])  # +1 indicates correct int phase, -1 otherwise
@@ -66,13 +67,12 @@ def parse_hdw_files(hdw_files_path):
                     hdw_dict["maxbeams"] = int(params[21])  # so beamnum points in a certain dir
 
                     hdw_info[hdw_dict["stid"]] = hdw_dict
-                    break
-    except OSError as e:
+
+    except OSError:
         error_msg = "No directory {0} found when locating hdw files!".format(hdw_files_path)      
         raise ImportError(error_msg)
 
-
-    if loop_ran == False or len(hdw_info) == 0:
+    if loop_ran is False or len(hdw_info) == 0:
         error_msg = "No hardware files found at {0}".format(hdw_files_path)
         raise ImportError(error_msg)
 
@@ -82,10 +82,10 @@ def parse_hdw_files(hdw_files_path):
 def parse_config_file():
     config = cp.ConfigParser()
 
-    valid_sections = ["core","fitacf"]
+    valid_sections = ["core", "fitacf"]
     for loc in os.curdir, os.path.expanduser("~"), "/etc/backscatter":
         
-        file_path = os.path.join(loc,"backscatter.ini")
+        file_path = os.path.join(loc, "backscatter.ini")
         config.read(file_path)
 
         if config.sections():
