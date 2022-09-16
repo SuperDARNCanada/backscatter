@@ -26,7 +26,7 @@ from there, or add it to the Python path.
 
 backscatter can also be installed as a package by running
 ``python setup.py install`` from within the directory OR
-via pip VCS install by running ``pip install git+git://github.com/SuperDARNCanada/backscatter.git`` without having to clone anything!
+via pip VCS install by running ``pip install git+git://github.com/SuperDARNCanada/backscatter.git#egg=backscatter`` without having to clone anything!
 
 backscatter makes use of configuration files at import time, and installation
 creates a system wide configuration file in /etc/backscatter as well as the
@@ -50,7 +50,7 @@ file in the current directory firstly, the user's home directory secondly, and /
 standard operation while allowing each user to override any options they choose.
 
 backscatter also requires a folder containing the hdw.dat files for each radar
-somewhere on the system. The location can be set in the configuration file with the default being /usr/local/hdw.dat. Please clone https://github.com/vtsuperdarn/hdw.dat to /usr/local, or to another directory and reflect the change in your configuration files. Backscatter will fail to import if it can't find the hardware files.
+somewhere on the system. The location can be set in the configuration file with the default being /usr/local/hdw. Please clone https://github.com/SuperDARN/hdw.git to /usr/local, or to another directory and reflect the change in your configuration files. Backscatter will fail to import if it can't find the hardware files.
 
 Once successfully imported, you can start using package contents in your scripts.
 

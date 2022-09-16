@@ -3,21 +3,26 @@
 # README file and 2) it's easier to type in the README file than to put a raw
 # string in below ...
 
-def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
-
 from setuptools import setup, find_packages
 from setuptools.command.install import install
 
 import errno
+import os
+
+
+def read(fname):
+    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+
+
 class CustomInstall(install):
     """Customized setuptools install command - creates configuration files."""
     def run(self):
         self.create_config_files()
         install.run(self)
 
-    def create_config_files(self):
-        #Creating default configuation files
+    @staticmethod
+    def create_config_files():
+        # Creating default configuration files
 
         import configparser as cp
         import os
@@ -35,15 +40,15 @@ class CustomInstall(install):
         config.set('fitacf', 'minimum_lags', '3')
 
         config.add_section('core')
-        config.set('core', 'hdw_files_path', '/usr/local/hdw.dat')
+        config.set('core', 'hdw_files_path', '/usr/local/hdw')
 
         for loc in os.path.expanduser("~"), "/etc/backscatter":
-            file_path = os.path.join(loc,"backscatter.ini")
+            file_path = os.path.join(loc, "backscatter.ini")
 
             if not os.path.exists(os.path.dirname(file_path)):
                 try:
                     os.makedirs(loc)
-                except OSError as exc: # Guard against race condition
+                except OSError as exc:      # Guard against race condition
                     if exc.errno != errno.EEXIST:
                         if exc.errno == errno.EACCES:
                             err_msg = """Could not create installation folder
@@ -54,32 +59,26 @@ class CustomInstall(install):
                             raise
 
             try:
-                with open(file_path,'w') as cfg:
+                with open(file_path, 'w') as cfg:
                     config.write(cfg)
-            except:
+            except OSError:
                 err_msg = """Could not install configuration file
                 at {0}. Please manually copy or reinstall as root.""".format(loc)
                 print(err_msg)
 
 
-
-#Set up arguments for installation
-setup_args  =  {
-    'name' : "backscatter",
-    'version' : "2016.08",
-    'description' : "A Python package of analysis tools for SuperDARN data",
-    'url' : "",
-    'author' : "SuperDARN Canada",
-    'license' : "GNU",
-    'packages' : find_packages(exclude=['contrib', 'docs', 'tests']),
-    'setup_requires' : ['configparser'],
-    'install_requires' : ['numpy>=1.8'],
-    'cmdclass' : {'install' : CustomInstall,},
+# Set up arguments for installation
+setup_args = {
+    'name': "backscatter",
+    'version': "2016.08",
+    'description': "A Python package of analysis tools for SuperDARN data",
+    'url': "",
+    'author': "SuperDARN Canada",
+    'license': "GNU",
+    'packages': find_packages(exclude=['contrib', 'docs', 'tests']),
+    'setup_requires': ['configparser'],
+    'install_requires': ['numpy>=1.8'],
+    'cmdclass': {'install': CustomInstall},
 }
 
 setup(**setup_args)
-
-
-
-
-
