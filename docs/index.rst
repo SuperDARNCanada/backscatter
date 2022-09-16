@@ -54,7 +54,7 @@ somewhere on the system. The location can be set in the configuration file with 
 
 Once successfully imported, you can start using package contents in your scripts.
 
-If installed, backscatter can also be used in a command line way that can be used for batch processing, or as a replacement for RST commands in current scripts. For example, to use fitacf as a utility from command line we can run ``python -m backscatter.fitacf.fitacf in_file out_file`` from anywhere.
+If installed, backscatter can also be used in a command line way that can be used for batch processing, or as a replacement for RST commands in current scripts. For example, to use fitacf as a utility from command line we can run ``python -m backscatter.fitacf in_file out_file`` from anywhere.
 
 
 

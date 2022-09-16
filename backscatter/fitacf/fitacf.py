@@ -481,9 +481,7 @@ def fit(raw_records):
     return fitted_records
 
 
-
-
-if __name__ == "__main__":
+def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("infile", help="Input rawacf file path", type=str)
     parser.add_argument("outfile", help="Output file path", type=str)
@@ -499,3 +497,10 @@ if __name__ == "__main__":
         fitted_records = fit(raw_records)
 
     dm.dicts_to_file(fitted_records,args.outfile,file_type='fitacf')
+
+
+if __name__ == "__main__":
+    import warnings
+    warnings.warn("Use 'python -m backscatter.fitacf', not 'python -m backscatter.fitacf.fitacf'", DeprecationWarning)
+    main()
+

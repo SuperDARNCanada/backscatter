@@ -466,9 +466,9 @@ class Determinations(object):
         phi_0 = hdw_info['beamsep'] * ( bmnum- azi_offset) * np.pi/180
         c_phi_0 = np.cos(phi_0)
 
-        wave_num = 2 * np.pi * tfreq * 1000/C;
+        wave_num = 2 * np.pi * tfreq * 1000/C
 
-        cable_offset = -2 * np.pi * tfreq * 1000 * hdw_info['tdiff'] * 1.0e-6
+        cable_offset = -2 * np.pi * tfreq * 1000 * hdw_info['tdiff_a'] * 1.0e-6     # TODO: When do we use tdiff_b?
 
         phase_diff_max = phi_sign * wave_num * antenna_sep * c_phi_0 + cable_offset
 
