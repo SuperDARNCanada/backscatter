@@ -1,6 +1,7 @@
 from __future__ import print_function
 import numpy as np
 import sys
+from functools import partial
 import math
 #import mpmath as mpm
 from datetime import datetime
@@ -409,13 +410,14 @@ def debug_output(range_list, raw_data):
         print("elev_fit.Q", range_obj.elev_fit.Q)
         print("elev_fit.chi_2", range_obj.elev_fit.chi_2)
 
-def _fit(raw_data, debug_mode=False):
+def _fit(raw_data, tdiff: float = None, debug_mode=False):
     """Fits a single dictionary of raw data.
 
     This function is meant to be passed as an argument
     to multiprocessing map.
 
     :param raw_data: a dictionary of raw data parameters
+    :param    tdiff: Propagation time difference between arrays, in us.
     :returns: a dictionary of fitted parameters
 
     """
@@ -459,11 +461,11 @@ def _fit(raw_data, debug_mode=False):
     if debug_mode:
         debug_output(range_list, raw_data)
 
-    determined_parameters = Determinations(raw_data,range_list,noise_pwr)
+    determined_parameters = Determinations(raw_data,range_list,noise_pwr, tdiff)
     return determined_parameters.paramater_dict
 
 
-def fit(raw_records):
+def fit(raw_records, tdiff: float = None):
     """Performs the whole fitting procedure for rawacf data
 
     Calls the _fit procedure in a parallelized multiprocessing
@@ -471,12 +473,12 @@ def fit(raw_records):
     routine scales with number of cores.
 
     :param raw_records: a list of raw data dictionaries
+    :param       tdiff: Propagation time difference between arrays, in us.
     :returns: a list of dictionaries with fitted data
 
     """
-
     pool = mp.Pool()
-    fitted_records = pool.map(_fit,raw_records)
+    fitted_records = pool.map(partial(_fit, tdiff=tdiff), raw_records)
 
     return fitted_records
 
@@ -485,6 +487,8 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument("infile", help="Input rawacf file path", type=str)
     parser.add_argument("outfile", help="Output file path", type=str)
+    parser.add_argument("--tdiff", help="Tdiff value to use for processing. If not specified, tdiff_a "
+                                        "from hdw file is used. Units of us", type=float, default=None)
     parser.add_argument("--debug-mode", help="""Disables multiprocessing usage to produce more
         meaningful exception at the cost of performance.""", action="store_true")
     args = parser.parse_args()
@@ -492,9 +496,9 @@ def main():
     raw_records = dm.parse_dmap_format_from_file(args.infile)
 
     if args.debug_mode:
-        fitted_records = [_fit(rr,True) for rr in raw_records]
+        fitted_records = [_fit(rr, args.tdiff, True) for rr in raw_records]
     else:
-        fitted_records = fit(raw_records)
+        fitted_records = fit(raw_records, args.tdiff)
 
     dm.dicts_to_file(fitted_records,args.outfile,file_type='fitacf')
 
