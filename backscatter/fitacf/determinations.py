@@ -15,15 +15,21 @@ FITACF_REVISION_MAJOR = int(config.get("fitacf","fitacf_revision_major"))
 FITACF_REVISON_MINOR = int(config.get("fitacf","fitacf_revision_minor"))
 
 class Determinations(object):
-    """This is a class to construct a new dictionary of final deteminations
+    """This is a class to construct a new dictionary of final determinations
 
     This class holds the methods to convert fitted data into the final measurements
     of the plasma
 
     """
 
-    def __init__(self,raw_data,range_list,noise_pwr):
+    def __init__(self,raw_data,range_list,noise_pwr, tdiff):
         hdw_info = hdw[raw_data['stid']]
+
+        if tdiff is None:
+            self.tdiff = hdw_info['tdiff_a']        # TODO: Can we incorporate tdiff_b somehow?
+        else:
+            self.tdiff = tdiff
+
         self.paramater_dict = self.new_parameter_dictionary(hdw_info,raw_data,range_list,noise_pwr)
 
     def new_parameter_dictionary(self,hdw_info,raw_data,range_list,noise_pwr):
@@ -466,10 +472,9 @@ class Determinations(object):
         phi_0 = hdw_info['beamsep'] * ( bmnum- azi_offset) * np.pi/180
         c_phi_0 = np.cos(phi_0)
 
-        wave_num = 2 * np.pi * tfreq * 1000/C;
+        wave_num = 2 * np.pi * tfreq * 1000/C
 
-        cable_offset = -2 * np.pi * tfreq * 1000 * hdw_info['tdiff'] * 1.0e-6
-
+        cable_offset = -2 * np.pi * tfreq * 1000 * self.tdiff * 1.0e-6
         phase_diff_max = phi_sign * wave_num * antenna_sep * c_phi_0 + cable_offset
 
         psi_calculation = lambda x: x + 2 * np.pi * np.floor((phase_diff_max-x)/(2*np.pi))
