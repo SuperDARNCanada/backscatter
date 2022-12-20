@@ -83,8 +83,8 @@ def parse_config_file():
     config = cp.ConfigParser()
 
     valid_sections = ["core", "fitacf"]
-    for loc in os.curdir, os.path.expanduser("~"), "/etc/backscatter":
-        
+    for loc in os.curdir, os.pardir,  os.path.expanduser("~"), "/etc/backscatter":
+        print(loc)
         file_path = os.path.join(loc, "backscatter.ini")
         config.read(file_path)
 

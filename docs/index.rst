@@ -64,7 +64,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   backscatter
+   source/backscatter
 
 
 Indices and tables
