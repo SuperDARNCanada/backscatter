@@ -33,7 +33,6 @@ if on_rtd or 1: # TODO testing
 	# TODO: Get this path into config file somehow, as that's now how we specify hdw location 
 	run(['git', 'clone', 'https://github.com/SuperDARN/hdw', BACKSCATTERPATH + '/hdw'])
 
-
 	config = cp.RawConfigParser()
 
 	config.add_section('fitacf')
