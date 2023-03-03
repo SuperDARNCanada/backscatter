@@ -30,7 +30,7 @@ sys.setrecursionlimit(10000)
 
 # commands run only on readthedocs: https://github.com/rtfd/readthedocs.org/issues/388
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
-if on_rtd or 1: # TODO testing
+if on_rtd:
     # Clone in the HDW repo temporarily so modules reading them don't throw errors
 	# TODO: Get this path into config file somehow, as that's now how we specify hdw location 
 	run(['git', 'clone', 'https://github.com/SuperDARN/hdw', BACKSCATTERPATH + '/hdw'])
