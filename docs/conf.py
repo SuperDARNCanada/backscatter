@@ -26,6 +26,8 @@ sys.path.insert(0, BACKSCATTERPATH)
 sys.path.insert(1, BACKSCATTERPATH + '/backscatter')
 sys.path.insert(2, BACKSCATTERPATH + '/tests')
 
+sys.setrecursionlimit(10000)
+
 # commands run only on readthedocs: https://github.com/rtfd/readthedocs.org/issues/388
 on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
 if on_rtd or 1: # TODO testing

@@ -13,11 +13,3 @@ Submodules
    backscatter.fitacf.fitting
    backscatter.fitacf.leastsquares
    backscatter.fitacf.noisepower
-
-Module contents
----------------
-
-.. automodule:: backscatter.fitacf
-    :members:
-    :undoc-members:
-    :show-inheritance:

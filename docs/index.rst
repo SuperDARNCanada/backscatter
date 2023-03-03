@@ -36,7 +36,7 @@ user's home directory.
 The setup scripts have dependency handling in them, but in case that fails
 or if you choose not to install, the following dependencies are needed:
 
-- Python 3.0 (compatibility not tested with Python 3)
+- Python 3.0
 - setuptools
 - configparser
 - Numpy >= v1.8
