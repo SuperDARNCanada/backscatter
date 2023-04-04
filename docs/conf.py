@@ -15,21 +15,43 @@
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#
-# import os
-# import sys
-# sys.path.insert(0, os.path.abspath('.'))
-#mock modules for c extensions
+
+import os
 import sys
-from mock import Mock as MagicMock
+from subprocess import run
+import configparser as cp
 
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-            return Mock()
+BACKSCATTERPATH = os.path.abspath('..')
+sys.path.insert(0, BACKSCATTERPATH)
+sys.path.insert(1, BACKSCATTERPATH + '/backscatter')
+sys.path.insert(2, BACKSCATTERPATH + '/tests')
 
-MOCK_MODULES = ['numpy']
-sys.modules.update((mod_name, Mock()) for mod_name in MOCK_MODULES)
+sys.setrecursionlimit(10000)
+
+# commands run only on readthedocs: https://github.com/rtfd/readthedocs.org/issues/388
+on_rtd = os.environ.get('READTHEDOCS', None) == 'True'
+if on_rtd:
+    # Clone in the HDW repo temporarily so modules reading them don't throw errors
+	# TODO: Get this path into config file somehow, as that's now how we specify hdw location 
+	run(['git', 'clone', 'https://github.com/SuperDARN/hdw', BACKSCATTERPATH + '/hdw'])
+
+	config = cp.RawConfigParser()
+
+	config.add_section('fitacf')
+	config.set('fitacf', 'w_max', '90.0')
+	config.set('fitacf', 'v_max', '30.0')
+	config.set('fitacf', 'fitacf_revision_minor', '0')
+	config.set('fitacf', 'fitacf_revision_major', '3')
+	config.set('fitacf', 'fluctuation_cutoff_coeff', '2')
+	config.set('fitacf', 'alpha_cutoff', '2.0')
+	config.set('fitacf', 'acf_snr_cutoff', '1.0')
+	config.set('fitacf', 'minimum_lags', '3')
+	config.add_section('core')
+	config.set('core', 'hdw_files_path', BACKSCATTERPATH + '/hdw')
+
+	with open(BACKSCATTERPATH + '/backscatter.ini', 'w') as cfg:
+		config.write(cfg)
+
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
@@ -167,7 +189,7 @@ html_theme = 'default'
 # Add any paths that contain custom static files (such as style sheets) here,
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
-html_static_path = ['_static']
+# html_static_path = ['_static']
 
 # Add any extra paths that contain custom files (such as robots.txt or
 # .htaccess) here, relative to this directory. These files are copied

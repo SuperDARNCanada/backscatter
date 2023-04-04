@@ -24,7 +24,8 @@ The package can be cloned from https://github.com/SuperDARNCanada/backscatter.
 In order to work with the package one can simply enter the directory and work
 from there, or add it to the Python path.
 
-backscatter can also be installed as a package by running
+As development of this package is ongoing, I highly recommend installing this package within a `virtual environment
+<http://docs.python-guide.org/en/latest/dev/virtualenvs/>`_. backscatter can be installed as a package by running
 ``python setup.py install`` from within the directory OR
 via pip VCS install by running ``pip install git+git://github.com/SuperDARNCanada/backscatter.git#egg=backscatter`` without having to clone anything!
 
@@ -35,9 +36,9 @@ user's home directory.
 The setup scripts have dependency handling in them, but in case that fails
 or if you choose not to install, the following dependencies are needed:
 
-- Python 2.7 (compatibility not tested with Python 3)
+- Python 3
 - setuptools
-- ConfigParser
+- configparser
 - Numpy >= v1.8
 
 *Note that depending on your system, installation may require root privileges.*
@@ -46,7 +47,7 @@ Usage
 -----
 
 When importing backscatter, the package will attempt to locate a configuration
-file in the current directory firstly, the user's home directory secondly, and /etc/backscatter thirdly. This allows a system wide configuration for 
+file in the current directory firstly, the user's home directory secondly, and /etc/backscatter thirdly. This allows a system wide configuration for
 standard operation while allowing each user to override any options they choose.
 
 backscatter also requires a folder containing the hdw.dat files for each radar
@@ -64,7 +65,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   backscatter
+   source/backscatter
 
 
 Indices and tables
