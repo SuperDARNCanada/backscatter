@@ -1,6 +1,6 @@
-import fitacf as fit
+import backscatter.fitacf as fit
 import unittest
-import pydmap.dmap as dm
+import backscatter.dmap as dm
 
 class FakeRangeClassForTesting(fit.Range):
     def __init__(self, range_number):
