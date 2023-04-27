@@ -688,13 +688,13 @@ class RawDmapRead(object):
             message = "READ DATA: Byte offsets into buffer are not properly aligned. Data is likely corrupted"
             raise DmapDataError(message)
 
-        if data_type_fmt is DMAP:
+        if data_type_fmt == DMAP:
             return self.parse_record()
-        elif data_type_fmt is 'c':
+        elif data_type_fmt == 'c':
             data = self.dmap_bytearr[self.cursor]
             #print (data,data_type)
             self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
-        elif data_type_fmt is not 's':
+        elif data_type_fmt != 's':
             data = struct.unpack_from(data_type_fmt,memoryview(self.dmap_bytearr),self.cursor)
             #print(data,data_type)
             self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
@@ -713,7 +713,7 @@ class RawDmapRead(object):
             self.cursor = self.cursor + byte_counter + 1
 
 
-        if(data_type_fmt is 'c'):
+        if data_type_fmt == 'c':
             return data
         else:
             return data[0] #struct.unpack returns a tuple. [0] is the actual data
