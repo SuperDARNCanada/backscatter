@@ -700,7 +700,7 @@ class RawDmapRead(object):
             self.cursor = self.cursor + self.get_num_bytes(data_type_fmt)
         else:
             byte_counter = 0
-            while self.dmap_bytearr[self.cursor + byte_counter] is not 0:
+            while self.dmap_bytearr[self.cursor + byte_counter] != 0:
                 #print(self.dmap_bytearr[self.cursor + byte_counter])
                 byte_counter = byte_counter + 1
                 if self.cursor + byte_counter >= len(self.dmap_bytearr):
