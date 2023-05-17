@@ -137,7 +137,7 @@ class PowerDataPoints(object):
         if max(bad_indices) >= num_points:
             bad_indices = [bi for bi in bad_indices if bi < num_points]
 
-        mask = np.ones(num_points, np.bool)
+        mask = np.ones(num_points, bool)
         mask[bad_indices] = 0
 
         self.log_pwrs = self.log_pwrs[mask]
@@ -222,7 +222,7 @@ class PhaseDataPoints(object):
         if max(bad_indices) >= num_points:
             bad_indices = [bi for bi in bad_indices if bi < num_points]
 
-        mask = np.ones(num_points, np.bool)
+        mask = np.ones(num_points, bool)
         mask[bad_indices] = 0
         self.phases = self.phases[mask]
         self.sigmas = self.sigmas[mask]
@@ -351,7 +351,7 @@ class Range(object):
             bad_indices = [bi for bi in bad_indices if bi < num_points]
 
 
-        mask = np.ones(len(self.alpha_2), np.bool)
+        mask = np.ones(len(self.alpha_2), bool)
         mask[bad_indices] = 0
         self.alpha_2 = self.alpha_2[mask]
 
