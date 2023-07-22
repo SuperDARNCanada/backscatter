@@ -333,7 +333,7 @@ class ACFFitting(object):
         #.49999999... gets rounded up first.
         phase_diff = (phase_predicted - phase_values)/(2 * math.pi)
         phase_diff = np.around(phase_diff, decimals=5)
-        phase_correction = np.array([round(pd) for pd in phase_diff])
+        phase_correction = np.array([np.round(pd) for pd in phase_diff])
 
         corrected_phase = phase_values + (phase_correction * 2 * math.pi)
         total_corrections = np.sum(np.abs(phase_correction))
